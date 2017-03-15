@@ -1,0 +1,34 @@
+{
+  "name": "atom-bugs-nodejs",
+  "main": "./dist/main",
+  "version": "0.0.1",
+  "description": "NodeJS Debugger Plugin for Atom Bugs",
+  "keywords": [],
+  "repository": "https://github.com/atom-bugs/atom-bugs-nodejs",
+  "license": "MIT",
+  "scripts": {
+    "start": "tsc -w"
+  },
+  "engines": {
+    "atom": ">=1.0.0 <2.0.0"
+  },
+  "consumedServices": {
+    "atom-bugs": {
+      "versions": {
+        "1.0.0": "consumeBugsService"
+      }
+    }
+  },
+  "dependencies": {
+    "atom-package-deps": "^4.4.1",
+    "lodash": "^4.17.4"
+  },
+  "package-deps": [
+    "atom-bugs"
+  ],
+  "devDependencies": {
+    "@types/atom": "0.0.36",
+    "@types/node": "^7.0.8",
+    "typescript": "^2.2.1"
+  }
+}

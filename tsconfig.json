@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "noImplicitAny": false,
+    "lib": ["dom", "es2015.promise", "es5"],
+    "removeComments": true,
+    "outDir": "dist",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "sourceMap": true,
+    "inlineSources": true
+  },
+  "compileOnSave": false,
+  "include": [
+    "node_modules/@types",
+    "lib/**/*.ts"
+  ]
+}
