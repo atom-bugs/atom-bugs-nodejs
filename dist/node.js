@@ -1,11 +1,16 @@
-"use strict";
-exports.__esModule = true;
-var NodeBugsPlugin = (function () {
-    function NodeBugsPlugin() {
+'use babel';
+export class NodeBugsPlugin {
+    constructor() {
         this.name = 'Node.js';
         this.iconPath = 'atom://atom-bugs-nodejs/icons/nodejs.svg';
     }
-    return NodeBugsPlugin;
-}());
-exports.NodeBugsPlugin = NodeBugsPlugin;
+    execute() {
+        console.log('execute');
+    }
+    setBreakpoint() {
+        console.log('set breakpoint');
+    }
+    evalExpression() {
+    }
+}
 //# sourceMappingURL=node.js.map

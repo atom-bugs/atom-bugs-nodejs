@@ -1,18 +1,17 @@
-"use strict";
-exports.__esModule = true;
-var node_1 = require("./node");
-var _a = require('atom'), CompositeDisposable = _a.CompositeDisposable, Disposable = _a.Disposable;
-module.exports = {
+'use babel';
+import { NodeBugsPlugin } from './node';
+const { CompositeDisposable, Disposable } = require('atom');
+export default {
     bugs: null,
-    plugin: new node_1.NodeBugsPlugin(),
-    consumeBugsService: function (bugs) {
+    plugin: new NodeBugsPlugin(),
+    consumeBugsService(bugs) {
         this.bugs = bugs;
         this.bugs.addPlugin(this.plugin);
     },
-    activate: function () {
+    activate() {
         require('atom-package-deps').install('atom-bugs-nodejs', true);
     },
-    deactivate: function () {
+    deactivate() {
         if (this.bugs) {
             this.bugs.removePlugin(this.plugin);
         }

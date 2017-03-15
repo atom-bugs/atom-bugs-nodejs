@@ -1,7 +1,9 @@
+'use babel';
+
 import { NodeBugsPlugin } from './node';
 const { CompositeDisposable, Disposable } = require('atom');
 
-module.exports = {
+export default {
   bugs: null,
   plugin: new NodeBugsPlugin(),
   consumeBugsService (bugs) {
