@@ -134,6 +134,7 @@ export class DebuggerProtocolClient extends EventEmitter {
                 } break;
                 case 'Debugger.scriptParsed': {
                   // do something
+                  this.scripts.push(response.params);
                 } break;
                 case 'Runtime.consoleAPICalled': {
                   this.emit('console', response.params);
@@ -220,6 +221,18 @@ export class DebuggerProtocolClient extends EventEmitter {
   public evaluate (expression: string) {
     let frames = [...(this.callFrames || [])];
     return this.evaluateOnFrames(expression, frames);
+  }
+
+  public getScriptById (scriptId: number) {
+    return this.scripts.find((s) => {
+      return s.id === scriptId;
+    })
+  }
+
+  public getCallStack () {
+    this.callFrames.forEach((frame) => {
+      console.log('frame', frame);
+    });
   }
 
   public async addBreakpoint (url: string, lineNumber: number) {

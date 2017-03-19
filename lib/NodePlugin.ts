@@ -52,7 +52,7 @@ export class NodePlugin {
           this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber);
         })
       }
-      console.log('pause', params);
+      console.log('pause', this.debugger.protocol.getCallStack());
       // set status to pause
       this.client.pause();
     });

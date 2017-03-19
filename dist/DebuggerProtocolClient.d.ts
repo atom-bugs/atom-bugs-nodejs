@@ -28,6 +28,8 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     stepOut(): Promise<{}>;
     evaluateOnFrames(expression: string, frames: Array<any>): Promise<{}>;
     evaluate(expression: string): Promise<{}>;
+    getScriptById(scriptId: number): any;
+    getCallStack(): void;
     addBreakpoint(url: string, lineNumber: number): Promise<void>;
     getBreakpointById(id: any): Promise<DebuggerBreakpoint>;
     removeBreakpoint(url: string, lineNumber: number): Promise<{}>;
