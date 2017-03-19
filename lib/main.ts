@@ -1,21 +1,22 @@
 'use babel';
 
-import { NodeBugsPlugin } from './node';
+import { NodePlugin } from './NodePlugin';
 const { CompositeDisposable, Disposable } = require('atom');
 
 export default {
-  bugs: null,
-  plugin: new NodeBugsPlugin(),
-  consumeBugsService (bugs) {
-    this.bugs = bugs;
-    this.bugs.addPlugin(this.plugin);
+  pluginManager: null,
+  plugin: null,
+  consumeBugsService (pluginManager) {
+    this.plugin = new NodePlugin();
+    this.pluginManager = pluginManager;
+    this.pluginManager.addPlugin(this.plugin);
   },
   activate () {
     require('atom-package-deps').install('atom-bugs-nodejs', true);
   },
   deactivate () {
     if (this.bugs) {
-      this.bugs.removePlugin(this.plugin);
+      this.pluginManager.removePlugin(this.plugin);
     }
   }
 };

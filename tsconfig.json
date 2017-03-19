@@ -3,7 +3,6 @@
     "target": "es6",
     "declaration": true,
     "noImplicitAny": false,
-    "lib": ["dom", "es2015.promise", "es5"],
     "removeComments": true,
     "outDir": "dist",
     "typeRoots": [

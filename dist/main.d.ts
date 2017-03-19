@@ -1,8 +1,7 @@
-import { NodeBugsPlugin } from './node';
 declare var _default: {
-    bugs: any;
-    plugin: NodeBugsPlugin;
-    consumeBugsService(bugs: any): void;
+    pluginManager: any;
+    plugin: any;
+    consumeBugsService(pluginManager: any): void;
     activate(): void;
     deactivate(): void;
 };

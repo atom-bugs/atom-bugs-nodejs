@@ -8,7 +8,8 @@
   "repository": "https://github.com/atom-bugs/atom-bugs-nodejs",
   "license": "MIT",
   "scripts": {
-    "start": "tsc -w"
+    "start": "tsc -w",
+    "test": "node dist/test.js"
   },
   "engines": {
     "atom": ">=1.0.0 <2.0.0"
@@ -22,7 +23,8 @@
   },
   "dependencies": {
     "atom-package-deps": "^4.4.1",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "ws": "^2.2.1"
   },
   "package-deps": [
     "atom-bugs"
