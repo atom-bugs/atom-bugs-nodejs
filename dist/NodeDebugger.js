@@ -24,6 +24,17 @@ export class NodeDebugger extends EventEmitter {
             resolve(true);
         });
     }
+    buildCallStack() {
+        let callStack = this.protocol.getCallStack();
+        return callStack.map((frame) => {
+            return {
+                name: frame.functionName,
+                columnNumber: frame.location.columnNumber,
+                lineNumber: frame.location.lineNumber,
+                filePath: frame.location.script.url
+            };
+        });
+    }
     executeScript() {
         return __awaiter(this, void 0, void 0, function* () {
             let args = [
@@ -37,7 +48,7 @@ export class NodeDebugger extends EventEmitter {
             this.childProcess = spawn(this.binary, args);
             this.childProcess.stdout.on('data', (res) => this.emit('data', res));
             this.childProcess.stderr.on('data', (res) => {
-                if (String(res).match(/Waiting\sfor\sthe\sdebugger\sto\sdisconnect\.\.\./gi)) {
+                if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {
                     this.emit('close');
                 }
                 this.emit('data', res);

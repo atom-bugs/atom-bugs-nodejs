@@ -8,6 +8,7 @@ export interface DebuggerBreakpoint {
 }
 export declare class DebuggerProtocolClient extends EventEmitter {
     private connected;
+    private paused;
     private client;
     private nextRequestId;
     private retry;
@@ -16,6 +17,7 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     private callFrames;
     private subscriptions;
     isConnected(): boolean;
+    isPaused(): boolean;
     disconnect(): void;
     send(method: any, params?: any): Promise<{}>;
     private getSocketTarget(hostname, port);
@@ -26,10 +28,11 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     stepOver(): Promise<{}>;
     stepInto(): Promise<{}>;
     stepOut(): Promise<{}>;
+    getProperties(options: any): Promise<{}>;
     evaluateOnFrames(expression: string, frames: Array<any>): Promise<{}>;
     evaluate(expression: string): Promise<{}>;
     getScriptById(scriptId: number): any;
-    getCallStack(): void;
+    getCallStack(): any[];
     addBreakpoint(url: string, lineNumber: number): Promise<void>;
     getBreakpointById(id: any): Promise<DebuggerBreakpoint>;
     removeBreakpoint(url: string, lineNumber: number): Promise<{}>;

@@ -23,6 +23,54 @@ export class NodeDebugger extends EventEmitter {
     })
   }
 
+  public buildCallStack () {
+    let callStack = this.protocol.getCallStack();
+    return callStack.map((frame) => {
+      return {
+        name: frame.functionName,
+        columnNumber: frame.location.columnNumber,
+        lineNumber: frame.location.lineNumber,
+        filePath: frame.location.script.url
+      };
+    });
+  }
+
+  // public async formatEvaluation (result) {
+  //   let rebuildExpression: any = {
+  //     type: 'undefined',
+  //     value: undefined
+  //   };
+  //   switch (result.type) {
+  //     case 'string':
+  //       rebuildExpression = {
+  //         type: result.type,
+  //         value: result.value
+  //       }
+  //     break;
+  //     case 'object':
+  //       // accessors
+  //       let accessorsProperties: any = await this.protocol.getProperties(result.objectId, {
+  //         accessorPropertiesOnly: true,
+  //         generatePreview: false,
+  //         objectId: result.objectId,
+  //         ownProperties: false
+  //       });
+  //       // own properties
+  //       let properties: any = await this.protocol.getProperties(result.objectId, {
+  //         accessorPropertiesOnly: false,
+  //         generatePreview: false,
+  //         objectId: result.objectId,
+  //         ownProperties: true
+  //       });
+  //       let objectProperties = [...properties.result, ...accessorsProperties.result];
+  //
+  //     break;
+  //     default:
+  //       console.log('eval', result);
+  //   }
+  //   return rebuildExpression;
+  // }
+
   async executeScript () {
     let args = [
       `--inspect`,
@@ -37,7 +85,7 @@ export class NodeDebugger extends EventEmitter {
     this.childProcess = spawn(this.binary, args)
     this.childProcess.stdout.on('data', (res) => this.emit('data', res))
     this.childProcess.stderr.on('data', (res) => {
-      if (String(res).match(/Waiting\sfor\sthe\sdebugger\sto\sdisconnect\.\.\./gi)) {
+      if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {
         this.emit('close');
       }
       this.emit('data', res);

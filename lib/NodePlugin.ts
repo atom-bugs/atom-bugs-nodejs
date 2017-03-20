@@ -52,7 +52,7 @@ export class NodePlugin {
           this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber);
         })
       }
-      console.log('pause', this.debugger.protocol.getCallStack());
+      this.client.showCallStack(this.debugger.buildCallStack());
       // set status to pause
       this.client.pause();
     });
@@ -87,8 +87,11 @@ export class NodePlugin {
   didResume () {
     this.debugger.protocol.resume();
   }
-  didPause () {
-    this.debugger.protocol.pause();
+  async didPause () {
+    let connected = this.debugger.protocol.isConnected();
+    if (connected) {
+      this.debugger.protocol.pause();
+    }
   }
   didAddBreakpoint (filePath, fileNumber) {
     if (this.debugger.protocol.isConnected()) {
@@ -113,12 +116,41 @@ export class NodePlugin {
     this.debugger.protocol.stepOut();
   }
 
+  async didRequestProperties (request, inspectView) {
+    // let accessorsProperties: any = await this.debugger.protocol.getProperties({
+    //   accessorPropertiesOnly: true,
+    //   generatePreview: false,
+    //   objectId: request.objectId,
+    //   ownProperties: false
+    // });
+    // own properties
+    let properties: any = await this.debugger.protocol.getProperties({
+      accessorPropertiesOnly: false,
+      generatePreview: false,
+      objectId: request.objectId,
+      ownProperties: true
+    });
+    let objectProperties = [...properties.result]; // , ...accessorsProperties.result
+    inspectView.insertFromDescription(objectProperties);
+  }
+
   async didEvaluateExpression (expression: string, range) {
+
     let connected = this.debugger.protocol.isConnected();
-    if (connected) {
-      let result = await this.debugger.protocol.evaluate(expression);
-      if (result) {
-        this.client.showEvaluation(result, range);
+    let paused = this.debugger.protocol.isPaused();
+    if (connected && paused) {
+      let response: any = await this
+        .debugger
+        .protocol
+        .evaluate(expression)
+        .catch((e) => {
+          // do nothing
+        });
+      if (response) {
+        let result = response.result;
+        if (result) {
+          this.client.showEvaluation(result, range);
+        }
       }
     }
   }

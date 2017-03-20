@@ -9,11 +9,12 @@ export declare class NodePlugin {
     didRun(setup: any): void;
     didStop(): void;
     didResume(): void;
-    didPause(): void;
+    didPause(): Promise<void>;
     didAddBreakpoint(filePath: any, fileNumber: any): void;
     didRemoveBreakpoint(filePath: any, fileNumber: any): void;
     didStepOver(): void;
     didStepInto(): void;
     didStepOut(): void;
+    didRequestProperties(request: any, inspectView: any): Promise<void>;
     didEvaluateExpression(expression: string, range: any): Promise<void>;
 }

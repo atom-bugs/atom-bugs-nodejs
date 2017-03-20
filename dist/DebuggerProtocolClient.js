@@ -13,6 +13,7 @@ export class DebuggerProtocolClient extends EventEmitter {
     constructor() {
         super(...arguments);
         this.connected = false;
+        this.paused = false;
         this.nextRequestId = 0;
         this.retry = 0;
         this.breakpoints = [];
@@ -23,8 +24,12 @@ export class DebuggerProtocolClient extends EventEmitter {
     isConnected() {
         return this.connected;
     }
+    isPaused() {
+        return this.paused;
+    }
     disconnect() {
         this.client = null;
+        this.paused = false;
         this.connected = false;
     }
     send(method, params) {
@@ -122,12 +127,14 @@ export class DebuggerProtocolClient extends EventEmitter {
                             switch (response.method) {
                                 case 'Debugger.paused':
                                     {
+                                        this.paused = true;
                                         this.callFrames = response.params.callFrames;
                                         this.emit('pause', response.params);
                                     }
                                     break;
                                 case 'Debugger.resumed':
                                     {
+                                        this.paused = false;
                                         this.emit('resume', response.params);
                                     }
                                     break;
@@ -186,7 +193,10 @@ export class DebuggerProtocolClient extends EventEmitter {
         return this.send('Debugger.stepInto');
     }
     stepOut() {
-        return this.send('Debugger.stepStepOut');
+        return this.send('Debugger.stepOut');
+    }
+    getProperties(options) {
+        return this.send('Runtime.getProperties', options);
     }
     evaluateOnFrames(expression, frames) {
         return new Promise((resolve, reject) => {
@@ -199,7 +209,10 @@ export class DebuggerProtocolClient extends EventEmitter {
                         expression: expression
                     })
                         .then((result) => {
-                        if (result.exceptionDetails && frames.length > 0) {
+                        let lookOnParent = frames.length > 0 &&
+                            result.result.subtype === 'error' &&
+                            result.result.className !== 'SyntaxError';
+                        if (lookOnParent) {
                             resolve(this.evaluateOnFrames(expression, frames));
                         }
                         else if (result && !result.exceptionDetails) {
@@ -211,11 +224,11 @@ export class DebuggerProtocolClient extends EventEmitter {
                     });
                 }
                 else {
-                    reject();
+                    reject('frame has no id');
                 }
             }
             else {
-                reject();
+                reject('there are no frames to evaluate');
             }
         });
     }
@@ -225,12 +238,13 @@ export class DebuggerProtocolClient extends EventEmitter {
     }
     getScriptById(scriptId) {
         return this.scripts.find((s) => {
-            return s.id === scriptId;
+            return parseInt(s.scriptId) === scriptId;
         });
     }
     getCallStack() {
-        this.callFrames.forEach((frame) => {
-            console.log('frame', frame);
+        return this.callFrames.map((frame) => {
+            frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
+            return frame;
         });
     }
     addBreakpoint(url, lineNumber) {

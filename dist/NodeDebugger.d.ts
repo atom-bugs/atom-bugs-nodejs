@@ -8,5 +8,11 @@ export declare class NodeDebugger extends EventEmitter {
     binary: string;
     portNumber: number;
     stopScript(): Promise<boolean>;
+    buildCallStack(): {
+        name: any;
+        columnNumber: any;
+        lineNumber: any;
+        filePath: any;
+    }[];
     executeScript(): Promise<any>;
 }

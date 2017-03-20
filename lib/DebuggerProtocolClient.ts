@@ -13,6 +13,7 @@ export interface DebuggerBreakpoint {
 export class DebuggerProtocolClient extends EventEmitter {
 
   private connected: boolean = false;
+  private paused: boolean = false;
   private client: WebSocket;
   private nextRequestId: number = 0;
   private retry: number = 0;
@@ -28,8 +29,13 @@ export class DebuggerProtocolClient extends EventEmitter {
     return this.connected;
   }
 
+  public isPaused () {
+    return this.paused;
+  }
+
   public disconnect () {
     this.client = null;
+    this.paused = false;
     this.connected = false;
   }
 
@@ -126,10 +132,12 @@ export class DebuggerProtocolClient extends EventEmitter {
             } else {
               switch (response.method) {
                 case 'Debugger.paused': {
+                  this.paused = true;
                   this.callFrames = response.params.callFrames;
                   this.emit('pause', response.params);
                 } break;
                 case 'Debugger.resumed': {
+                  this.paused = false;
                   this.emit('resume', response.params);
                 } break;
                 case 'Debugger.scriptParsed': {
@@ -187,7 +195,11 @@ export class DebuggerProtocolClient extends EventEmitter {
   }
 
   public stepOut () {
-    return this.send('Debugger.stepStepOut');
+    return this.send('Debugger.stepOut');
+  }
+
+  public getProperties (options) {
+    return this.send('Runtime.getProperties', options);
   }
 
   public evaluateOnFrames (expression: string, frames: Array<any>) {
@@ -201,7 +213,10 @@ export class DebuggerProtocolClient extends EventEmitter {
               expression: expression
             })
             .then((result: any) => {
-              if (result.exceptionDetails && frames.length > 0) {
+              let lookOnParent = frames.length > 0 &&
+                result.result.subtype === 'error' &&
+                result.result.className !== 'SyntaxError';
+              if (lookOnParent) {
                 resolve(this.evaluateOnFrames(expression, frames))
               } else if (result && !result.exceptionDetails) {
                 resolve(result);
@@ -210,10 +225,10 @@ export class DebuggerProtocolClient extends EventEmitter {
               }
             });
         } else {
-          reject();
+          reject('frame has no id');
         }
       } else {
-        reject();
+        reject('there are no frames to evaluate');
       }
     })
   }
@@ -225,13 +240,14 @@ export class DebuggerProtocolClient extends EventEmitter {
 
   public getScriptById (scriptId: number) {
     return this.scripts.find((s) => {
-      return s.id === scriptId;
+      return parseInt(s.scriptId) === scriptId;
     })
   }
 
   public getCallStack () {
-    this.callFrames.forEach((frame) => {
-      console.log('frame', frame);
+    return this.callFrames.map((frame: any) => {
+      frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
+      return frame;
     });
   }
 

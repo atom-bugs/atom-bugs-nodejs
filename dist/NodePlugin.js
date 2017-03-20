@@ -54,7 +54,7 @@ export class NodePlugin {
                     this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber);
                 }));
             }
-            console.log('pause', this.debugger.protocol.getCallStack());
+            this.client.showCallStack(this.debugger.buildCallStack());
             this.client.pause();
         });
         this.debugger.protocol.on('resume', () => {
@@ -85,7 +85,12 @@ export class NodePlugin {
         this.debugger.protocol.resume();
     }
     didPause() {
-        this.debugger.protocol.pause();
+        return __awaiter(this, void 0, void 0, function* () {
+            let connected = this.debugger.protocol.isConnected();
+            if (connected) {
+                this.debugger.protocol.pause();
+            }
+        });
     }
     didAddBreakpoint(filePath, fileNumber) {
         if (this.debugger.protocol.isConnected()) {
@@ -106,13 +111,34 @@ export class NodePlugin {
     didStepOut() {
         this.debugger.protocol.stepOut();
     }
+    didRequestProperties(request, inspectView) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let properties = yield this.debugger.protocol.getProperties({
+                accessorPropertiesOnly: false,
+                generatePreview: false,
+                objectId: request.objectId,
+                ownProperties: true
+            });
+            let objectProperties = [...properties.result];
+            inspectView.insertFromDescription(objectProperties);
+        });
+    }
     didEvaluateExpression(expression, range) {
         return __awaiter(this, void 0, void 0, function* () {
             let connected = this.debugger.protocol.isConnected();
-            if (connected) {
-                let result = yield this.debugger.protocol.evaluate(expression);
-                if (result) {
-                    this.client.showEvaluation(result, range);
+            let paused = this.debugger.protocol.isPaused();
+            if (connected && paused) {
+                let response = yield this
+                    .debugger
+                    .protocol
+                    .evaluate(expression)
+                    .catch((e) => {
+                });
+                if (response) {
+                    let result = response.result;
+                    if (result) {
+                        this.client.showEvaluation(result, range);
+                    }
                 }
             }
         });
