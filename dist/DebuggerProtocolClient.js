@@ -247,6 +247,12 @@ export class DebuggerProtocolClient extends EventEmitter {
             return frame;
         });
     }
+    getScope() {
+        return this.callFrames.map((frame) => {
+            frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
+            return frame;
+        });
+    }
     addBreakpoint(url, lineNumber) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield this

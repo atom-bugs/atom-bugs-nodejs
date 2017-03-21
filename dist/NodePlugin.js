@@ -55,6 +55,7 @@ export class NodePlugin {
                 }));
             }
             this.client.showCallStack(this.debugger.buildCallStack());
+            let scope = this.debugger.protocol.getScope();
             this.client.pause();
         });
         this.debugger.protocol.on('resume', () => {

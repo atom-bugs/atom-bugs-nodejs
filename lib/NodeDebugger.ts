@@ -35,42 +35,6 @@ export class NodeDebugger extends EventEmitter {
     });
   }
 
-  // public async formatEvaluation (result) {
-  //   let rebuildExpression: any = {
-  //     type: 'undefined',
-  //     value: undefined
-  //   };
-  //   switch (result.type) {
-  //     case 'string':
-  //       rebuildExpression = {
-  //         type: result.type,
-  //         value: result.value
-  //       }
-  //     break;
-  //     case 'object':
-  //       // accessors
-  //       let accessorsProperties: any = await this.protocol.getProperties(result.objectId, {
-  //         accessorPropertiesOnly: true,
-  //         generatePreview: false,
-  //         objectId: result.objectId,
-  //         ownProperties: false
-  //       });
-  //       // own properties
-  //       let properties: any = await this.protocol.getProperties(result.objectId, {
-  //         accessorPropertiesOnly: false,
-  //         generatePreview: false,
-  //         objectId: result.objectId,
-  //         ownProperties: true
-  //       });
-  //       let objectProperties = [...properties.result, ...accessorsProperties.result];
-  //
-  //     break;
-  //     default:
-  //       console.log('eval', result);
-  //   }
-  //   return rebuildExpression;
-  // }
-
   async executeScript () {
     let args = [
       `--inspect`,
