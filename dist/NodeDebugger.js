@@ -36,7 +36,14 @@ export class NodeDebugger extends EventEmitter {
         });
     }
     getScope() {
-        let scope = this.protocol.getScope();
+        let firstFrame = this.protocol.getFrameByIndex(0);
+        let scope = [...firstFrame.scopeChain];
+        if (firstFrame.this) {
+            scope.unshift({
+                type: 'this',
+                object: firstFrame.this
+            });
+        }
         return scope.map((s) => {
             return {
                 name: s.type,

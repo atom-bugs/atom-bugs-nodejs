@@ -27,7 +27,7 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     evaluate(expression: string): Promise<{}>;
     getScriptById(scriptId: number): any;
     getCallStack(): any[];
-    getScope(): any;
+    getFrameByIndex(index: number): any;
     addBreakpoint(url: string, lineNumber: number): Promise<void>;
     getBreakpointById(id: any): Promise<any>;
     removeBreakpoint(url: string, lineNumber: number): Promise<{}>;

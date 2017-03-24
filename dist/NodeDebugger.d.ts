@@ -14,6 +14,9 @@ export declare class NodeDebugger extends EventEmitter {
         lineNumber: any;
         filePath: any;
     }[];
-    getScope(): any;
+    getScope(): {
+        name: any;
+        value: any;
+    }[];
     executeScript(): Promise<any>;
 }

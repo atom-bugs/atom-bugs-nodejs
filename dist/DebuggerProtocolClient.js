@@ -251,10 +251,8 @@ export class DebuggerProtocolClient extends EventEmitter {
             return frame;
         });
     }
-    getScope() {
-        let firstFrame = this.callFrames[0];
-        firstFrame.location = this.getScriptById(parseInt(firstFrame.location.scriptId));
-        return firstFrame.scopeChain;
+    getFrameByIndex(index) {
+        return this.callFrames[index];
     }
     addBreakpoint(url, lineNumber) {
         return __awaiter(this, void 0, void 0, function* () {
