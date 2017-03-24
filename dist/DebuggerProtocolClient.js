@@ -206,7 +206,11 @@ export class DebuggerProtocolClient extends EventEmitter {
                     this
                         .send('Debugger.evaluateOnCallFrame', {
                         callFrameId: frame.callFrameId,
-                        expression: expression
+                        expression: expression,
+                        generatePreview: false,
+                        silent: true,
+                        returnByValue: false,
+                        includeCommandLineAPI: false
                     })
                         .then((result) => {
                         let lookOnParent = frames.length > 0 &&
@@ -248,10 +252,9 @@ export class DebuggerProtocolClient extends EventEmitter {
         });
     }
     getScope() {
-        return this.callFrames.map((frame) => {
-            frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
-            return frame;
-        });
+        let firstFrame = this.callFrames[0];
+        firstFrame.location = this.getScriptById(parseInt(firstFrame.location.scriptId));
+        return firstFrame.scopeChain;
     }
     addBreakpoint(url, lineNumber) {
         return __awaiter(this, void 0, void 0, function* () {

@@ -23,7 +23,7 @@ export class NodeDebugger extends EventEmitter {
     })
   }
 
-  public buildCallStack () {
+  public getCallStack () {
     let callStack = this.protocol.getCallStack();
     return callStack.map((frame) => {
       return {
@@ -31,6 +31,16 @@ export class NodeDebugger extends EventEmitter {
         columnNumber: frame.location.columnNumber,
         lineNumber: frame.location.lineNumber,
         filePath: frame.location.script.url
+      };
+    });
+  }
+
+  public getScope () {
+    let scope = this.protocol.getScope();
+    return scope.map((s) => {
+      return {
+        name: s.type,
+        value: s.object
       };
     });
   }

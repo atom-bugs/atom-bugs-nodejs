@@ -3,13 +3,6 @@
 import { request } from 'http';
 import { EventEmitter }  from 'events';
 
-export interface DebuggerBreakpoint {
-  id: number,
-  url: string,
-  columnNumber: number,
-  lineNumber: number
-}
-
 export class DebuggerProtocolClient extends EventEmitter {
 
   private connected: boolean = false;
@@ -17,7 +10,7 @@ export class DebuggerProtocolClient extends EventEmitter {
   private client: WebSocket;
   private nextRequestId: number = 0;
   private retry: number = 0;
-  private breakpoints: Array<DebuggerBreakpoint> = [];
+  private breakpoints: Array<object> = [];
   private scripts: Array<any> = [];
   private callFrames: Array<any> = [];
   private subscriptions:{
@@ -210,7 +203,11 @@ export class DebuggerProtocolClient extends EventEmitter {
           this
             .send('Debugger.evaluateOnCallFrame', {
               callFrameId: frame.callFrameId,
-              expression: expression
+              expression: expression,
+              generatePreview: false,
+              silent: true,
+              returnByValue: false,
+              includeCommandLineAPI: false
             })
             .then((result: any) => {
               let lookOnParent = frames.length > 0 &&
@@ -252,10 +249,9 @@ export class DebuggerProtocolClient extends EventEmitter {
   }
 
   public getScope () {
-    return this.callFrames.map((frame: any) => {
-      frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
-      return frame;
-    });
+    let firstFrame = this.callFrames[0];
+    firstFrame.location = this.getScriptById(parseInt(firstFrame.location.scriptId));
+    return firstFrame.scopeChain;
   }
 
   public async addBreakpoint (url: string, lineNumber: number) {
@@ -270,13 +266,13 @@ export class DebuggerProtocolClient extends EventEmitter {
           url,
           columnNumber: 0,
           lineNumber
-        } as DebuggerBreakpoint);
+        });
       });
   }
 
-  public getBreakpointById (id): Promise<DebuggerBreakpoint> {
+  public getBreakpointById (id): Promise<any> {
     return new Promise ((resolve, reject) => {
-      let found = this.breakpoints.find((b) => {
+      let found = this.breakpoints.find((b: any) => {
         return (b.id === id);
       });
       resolve(found);
@@ -284,7 +280,7 @@ export class DebuggerProtocolClient extends EventEmitter {
   }
 
   public removeBreakpoint (url: string, lineNumber: number) {
-    let breakpoint = this.breakpoints.find((b) => {
+    let breakpoint: any = this.breakpoints.find((b: any) => {
       return (b.url === url && b.lineNumber === lineNumber);
     });
     if (breakpoint) {

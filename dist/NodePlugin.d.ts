@@ -5,7 +5,7 @@ export declare class NodePlugin {
     iconPath: String;
     options: Object;
     constructor();
-    registerClient(atomBugsClient: any): void;
+    register(client: any): void;
     didRun(setup: any): void;
     didStop(): void;
     didResume(): void;
@@ -15,6 +15,6 @@ export declare class NodePlugin {
     didStepOver(): void;
     didStepInto(): void;
     didStepOut(): void;
-    didRequestProperties(request: any, inspectView: any): Promise<void>;
-    didEvaluateExpression(expression: string, range: any): Promise<void>;
+    didRequestProperties(request: any, propertyView: any): Promise<void>;
+    didEvaluateExpression(expression: string, evaluationView: any): Promise<void>;
 }

@@ -54,16 +54,16 @@ export class NodePlugin {
                     this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber);
                 }));
             }
-            this.client.showCallStack(this.debugger.buildCallStack());
-            let scope = this.debugger.protocol.getScope();
+            this.client.setCallStack(this.debugger.getCallStack());
+            this.client.setScope(this.debugger.getScope());
             this.client.pause();
         });
         this.debugger.protocol.on('resume', () => {
             this.client.resume();
         });
     }
-    registerClient(atomBugsClient) {
-        this.client = atomBugsClient;
+    register(client) {
+        this.client = client;
     }
     didRun(setup) {
         this.client.console.clear();
@@ -112,7 +112,7 @@ export class NodePlugin {
     didStepOut() {
         this.debugger.protocol.stepOut();
     }
-    didRequestProperties(request, inspectView) {
+    didRequestProperties(request, propertyView) {
         return __awaiter(this, void 0, void 0, function* () {
             let properties = yield this.debugger.protocol.getProperties({
                 accessorPropertiesOnly: false,
@@ -120,11 +120,10 @@ export class NodePlugin {
                 objectId: request.objectId,
                 ownProperties: true
             });
-            let objectProperties = [...properties.result];
-            inspectView.insertFromDescription(objectProperties);
+            propertyView.insertFromDescription([...properties.result]);
         });
     }
-    didEvaluateExpression(expression, range) {
+    didEvaluateExpression(expression, evaluationView) {
         return __awaiter(this, void 0, void 0, function* () {
             let connected = this.debugger.protocol.isConnected();
             let paused = this.debugger.protocol.isPaused();
@@ -138,7 +137,7 @@ export class NodePlugin {
                 if (response) {
                     let result = response.result;
                     if (result) {
-                        this.client.showEvaluation(result, range);
+                        evaluationView.insertFromResult(result);
                     }
                 }
             }

@@ -1,11 +1,5 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
-export interface DebuggerBreakpoint {
-    id: number;
-    url: string;
-    columnNumber: number;
-    lineNumber: number;
-}
 export declare class DebuggerProtocolClient extends EventEmitter {
     private connected;
     private paused;
@@ -33,8 +27,8 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     evaluate(expression: string): Promise<{}>;
     getScriptById(scriptId: number): any;
     getCallStack(): any[];
-    getScope(): any[];
+    getScope(): any;
     addBreakpoint(url: string, lineNumber: number): Promise<void>;
-    getBreakpointById(id: any): Promise<DebuggerBreakpoint>;
+    getBreakpointById(id: any): Promise<any>;
     removeBreakpoint(url: string, lineNumber: number): Promise<{}>;
 }

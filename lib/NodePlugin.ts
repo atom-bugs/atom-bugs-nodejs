@@ -52,9 +52,8 @@ export class NodePlugin {
           this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber);
         })
       }
-      this.client.showCallStack(this.debugger.buildCallStack());
-      let scope = this.debugger.protocol.getScope();
-      // this.client.showScope(scope);
+      this.client.setCallStack(this.debugger.getCallStack());
+      this.client.setScope(this.debugger.getScope());
       // set status to pause
       this.client.pause();
     });
@@ -64,8 +63,8 @@ export class NodePlugin {
     });
   }
 
-  registerClient (atomBugsClient) {
-    this.client = atomBugsClient;
+  register (client) {
+    this.client = client;
   }
 
   // Actions
@@ -118,25 +117,17 @@ export class NodePlugin {
     this.debugger.protocol.stepOut();
   }
 
-  async didRequestProperties (request, inspectView) {
-    // let accessorsProperties: any = await this.debugger.protocol.getProperties({
-    //   accessorPropertiesOnly: true,
-    //   generatePreview: false,
-    //   objectId: request.objectId,
-    //   ownProperties: false
-    // });
-    // own properties
+  async didRequestProperties (request, propertyView) {
     let properties: any = await this.debugger.protocol.getProperties({
       accessorPropertiesOnly: false,
       generatePreview: false,
       objectId: request.objectId,
       ownProperties: true
     });
-    let objectProperties = [...properties.result]; // , ...accessorsProperties.result
-    inspectView.insertFromDescription(objectProperties);
+    propertyView.insertFromDescription([...properties.result]); // , ...accessors.result
   }
 
-  async didEvaluateExpression (expression: string, range) {
+  async didEvaluateExpression (expression: string, evaluationView) {
 
     let connected = this.debugger.protocol.isConnected();
     let paused = this.debugger.protocol.isPaused();
@@ -151,7 +142,7 @@ export class NodePlugin {
       if (response) {
         let result = response.result;
         if (result) {
-          this.client.showEvaluation(result, range);
+          evaluationView.insertFromResult(result);
         }
       }
     }
