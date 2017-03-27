@@ -8,20 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { NodeDebugger } from './NodeDebugger';
+import { NodeOptions } from './NodeOptions';
 export class NodePlugin {
     constructor() {
         this.name = 'Node.js';
         this.iconPath = 'atom://atom-bugs-nodejs/icons/nodejs.svg';
-        this.options = {
-            binaryPath: {
-                type: 'text',
-                name: 'Binary Path',
-                value: '/usr/bin/local/node'
-            }
-        };
+        this.options = NodeOptions;
         this.debugger = new NodeDebugger();
-        this.debugger.on('data', (message) => {
-            console.log(String(message));
+        this.debugger.on('err', (message) => {
+            if (message) {
+                this.client.console.info(message.toString());
+            }
         });
         this.debugger.protocol.on('console', (params) => {
             params.args.forEach((a) => {
@@ -120,7 +117,7 @@ export class NodePlugin {
                 objectId: request.objectId,
                 ownProperties: true
             });
-            propertyView.insertFromDescription([...properties.result]);
+            propertyView.insertFromDescription(properties.result);
         });
     }
     didEvaluateExpression(expression, evaluationView) {

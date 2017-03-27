@@ -56,21 +56,22 @@ export class NodeDebugger extends EventEmitter {
             let args = [
                 `--inspect`,
                 `--debug-brk=${this.portNumber}`,
-                this.scriptPath
+                this.scriptPath,
+                '--colors'
             ];
             if (this.childProcess) {
                 yield this.stopScript();
             }
-            this.childProcess = spawn(this.binary, args);
-            this.childProcess.stdout.on('data', (res) => this.emit('data', res));
+            this.childProcess = spawn(this.binary, args, {});
+            this.childProcess.stdout.on('data', (res) => this.emit('out', res));
             this.childProcess.stderr.on('data', (res) => {
                 if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {
                     this.emit('close');
                 }
-                this.emit('data', res);
+                this.emit('err', res);
             });
-            this.childProcess.stdout.on('end', (res) => this.emit('data', res));
-            this.childProcess.stderr.on('end', (res) => this.emit('data', res));
+            this.childProcess.stdout.on('end', (res) => this.emit('out', res));
+            this.childProcess.stderr.on('end', (res) => this.emit('err', res));
             this.childProcess.on('close', (code) => this.emit('close', code));
             this.protocol.reset();
             return this.protocol.connect('localhost', this.portNumber);
