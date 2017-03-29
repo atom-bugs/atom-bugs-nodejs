@@ -6,7 +6,7 @@ export declare class NodePlugin {
     options: Object;
     constructor();
     register(client: any): void;
-    didRun(setup: any): void;
+    didRun(): Promise<void>;
     didStop(): void;
     didResume(): void;
     didPause(): Promise<void>;

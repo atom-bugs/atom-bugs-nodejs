@@ -5,7 +5,8 @@ export declare class NodeDebugger extends EventEmitter {
     private childProcess;
     protocol: DebuggerProtocolClient;
     scriptPath: string;
-    binary: string;
+    binaryPath: string;
+    hostName: string;
     portNumber: number;
     stopScript(): Promise<boolean>;
     getCallStack(): {
@@ -18,5 +19,6 @@ export declare class NodeDebugger extends EventEmitter {
         name: any;
         value: any;
     }[];
-    executeScript(): Promise<any>;
+    connect(): any;
+    executeScript(scriptFile?: string): Promise<any>;
 }

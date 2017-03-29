@@ -14,7 +14,7 @@ export const NodeOptions = {
     binaryPath: {
         type: 'string',
         title: 'Binary Path',
-        default: '/usr/bin/local/node',
+        default: '/usr/local/bin/node',
         visible: {
             runType: {
                 contains: [Runtype.Script, Runtype.CurrentFile]

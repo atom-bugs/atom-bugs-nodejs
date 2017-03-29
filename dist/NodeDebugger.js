@@ -14,7 +14,8 @@ export class NodeDebugger extends EventEmitter {
     constructor() {
         super(...arguments);
         this.protocol = new DebuggerProtocolClient();
-        this.binary = '/usr/local/bin/node';
+        this.binaryPath = '/usr/local/bin/node';
+        this.hostName = 'localhost';
         this.portNumber = 5858;
     }
     stopScript() {
@@ -51,8 +52,15 @@ export class NodeDebugger extends EventEmitter {
             };
         });
     }
-    executeScript() {
+    connect() {
+        this.protocol.reset();
+        return this.protocol.connect(this.hostName, this.portNumber);
+    }
+    executeScript(scriptFile) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (scriptFile) {
+                this.scriptPath = scriptFile;
+            }
             let args = [
                 `--inspect`,
                 `--debug-brk=${this.portNumber}`,
@@ -62,7 +70,7 @@ export class NodeDebugger extends EventEmitter {
             if (this.childProcess) {
                 yield this.stopScript();
             }
-            this.childProcess = spawn(this.binary, args, {});
+            this.childProcess = spawn(this.binaryPath, args, {});
             this.childProcess.stdout.on('data', (res) => this.emit('out', res));
             this.childProcess.stderr.on('data', (res) => {
                 if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {
@@ -73,8 +81,7 @@ export class NodeDebugger extends EventEmitter {
             this.childProcess.stdout.on('end', (res) => this.emit('out', res));
             this.childProcess.stderr.on('end', (res) => this.emit('err', res));
             this.childProcess.on('close', (code) => this.emit('close', code));
-            this.protocol.reset();
-            return this.protocol.connect('localhost', this.portNumber);
+            return this.connect();
         });
     }
 }

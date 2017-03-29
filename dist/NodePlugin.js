@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { NodeDebugger } from './NodeDebugger';
-import { NodeOptions } from './NodeOptions';
+import { Runtype, NodeOptions } from './NodeOptions';
 export class NodePlugin {
     constructor() {
         this.name = 'Node.js';
@@ -27,7 +27,6 @@ export class NodePlugin {
                         {
                             this.client.console[params.type](a.value);
                         }
-                        ;
                         break;
                     default:
                         console.log('console called', params);
@@ -62,22 +61,41 @@ export class NodePlugin {
     register(client) {
         this.client = client;
     }
-    didRun(setup) {
-        this.client.console.clear();
-        this.debugger.scriptPath = setup.currentFile;
-        this.debugger
-            .executeScript()
-            .then(() => {
-            this.client.run();
+    didRun() {
+        return __awaiter(this, void 0, void 0, function* () {
+            this.client.console.clear();
+            let options = this.client.getOptions();
+            switch (options.runType) {
+                case Runtype.CurrentFile:
+                    let editor = atom.workspace.getActiveTextEditor();
+                    this.debugger.scriptPath = editor.getPath();
+                    this.debugger.binaryPath = options.binaryPath;
+                    this.debugger.portNumber = options.port;
+                    this.debugger.executeScript().then(() => {
+                        this.client.run();
+                    });
+                    break;
+                case Runtype.Script:
+                    this.debugger.scriptPath = this.client.getPathFromFile(options.scriptPath);
+                    this.debugger.binaryPath = options.binaryPath;
+                    this.debugger.portNumber = options.port;
+                    this.debugger.executeScript().then(() => {
+                        this.client.run();
+                    });
+                    break;
+                case Runtype.Remote:
+                    this.debugger.hostName = options.remoteUrl;
+                    this.debugger.portNumber = options.remotePort;
+                    this.debugger.connect().then(() => {
+                        this.client.run();
+                    });
+                    break;
+            }
         });
     }
     didStop() {
         this.client.console.clear();
-        this.debugger
-            .stopScript()
-            .then(() => {
-            this.client.stop();
-        });
+        this.debugger.stopScript().then(() => this.client.stop());
     }
     didResume() {
         this.debugger.protocol.resume();
