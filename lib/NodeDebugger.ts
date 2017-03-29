@@ -5,6 +5,7 @@
 import { spawn } from 'child_process'
 import { EventEmitter }  from 'events'
 import { DebuggerProtocolClient }  from './DebuggerProtocolClient'
+import { dirname } from 'path'
 
 export class NodeDebugger extends EventEmitter {
 
@@ -14,7 +15,10 @@ export class NodeDebugger extends EventEmitter {
   public scriptPath: string
   public binaryPath: string = '/usr/local/bin/node'
   public hostName: string = 'localhost'
+  public cwd: string
   public portNumber: number = 5858
+  public launchArguments: Array<string> = []
+  public environmentVariables: Object = {}
 
   public stopScript () {
     return new Promise<boolean>((resolve) => {
@@ -58,24 +62,28 @@ export class NodeDebugger extends EventEmitter {
     return this.protocol.connect(this.hostName, this.portNumber)
   }
 
-  async executeScript (scriptFile?: string) {
-    if (scriptFile) {
-      this.scriptPath = scriptFile
-    }
+  normalizePath (dir) {
+    return dir.replace(/^~/, process.env.HOME)
+  }
+
+  async executeScript () {
     let args = [
       `--inspect`,
       `--debug-brk=${this.portNumber}`,
-      this.scriptPath,
-      '--colors'
-    ]
+      this.normalizePath(this.scriptPath)
+    ].concat(this.launchArguments)
+    let options = {
+      detached: true,
+      shell: true,
+      cwd: this.cwd || this.normalizePath(dirname(this.scriptPath)),
+      env: this.environmentVariables
+    }
     // kill if already running
     if (this.childProcess) {
       await this.stopScript()
     }
     // process
-    this.childProcess = spawn(this.binaryPath, args, {
-      // options
-    })
+    this.childProcess = spawn(this.binaryPath, args, options)
     this.childProcess.stdout.on('data', (res) => this.emit('out', res))
     this.childProcess.stderr.on('data', (res) => {
       if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {

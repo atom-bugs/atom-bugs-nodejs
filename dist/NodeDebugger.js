@@ -10,6 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
 import { DebuggerProtocolClient } from './DebuggerProtocolClient';
+import { dirname } from 'path';
 export class NodeDebugger extends EventEmitter {
     constructor() {
         super(...arguments);
@@ -17,6 +18,8 @@ export class NodeDebugger extends EventEmitter {
         this.binaryPath = '/usr/local/bin/node';
         this.hostName = 'localhost';
         this.portNumber = 5858;
+        this.launchArguments = [];
+        this.environmentVariables = {};
     }
     stopScript() {
         return new Promise((resolve) => {
@@ -56,21 +59,26 @@ export class NodeDebugger extends EventEmitter {
         this.protocol.reset();
         return this.protocol.connect(this.hostName, this.portNumber);
     }
-    executeScript(scriptFile) {
+    normalizePath(dir) {
+        return dir.replace(/^~/, process.env.HOME);
+    }
+    executeScript() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (scriptFile) {
-                this.scriptPath = scriptFile;
-            }
             let args = [
                 `--inspect`,
                 `--debug-brk=${this.portNumber}`,
-                this.scriptPath,
-                '--colors'
-            ];
+                this.normalizePath(this.scriptPath)
+            ].concat(this.launchArguments);
+            let options = {
+                detached: true,
+                shell: true,
+                cwd: this.cwd || this.normalizePath(dirname(this.scriptPath)),
+                env: this.environmentVariables
+            };
             if (this.childProcess) {
                 yield this.stopScript();
             }
-            this.childProcess = spawn(this.binaryPath, args, {});
+            this.childProcess = spawn(this.binaryPath, args, options);
             this.childProcess.stdout.on('data', (res) => this.emit('out', res));
             this.childProcess.stderr.on('data', (res) => {
                 if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {

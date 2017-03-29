@@ -1,7 +1,7 @@
 'use babel';
 export const Runtype = {
     CurrentFile: 'Current File',
-    Script: 'Script',
+    Script: 'Project',
     Remote: 'Remote'
 };
 export const NodeOptions = {
@@ -35,6 +35,7 @@ export const NodeOptions = {
         type: 'string',
         title: 'Source Script',
         default: 'Current File',
+        description: 'Enter the file path relative to the current project workspace.',
         visible: {
             runType: {
                 contains: [Runtype.Script]
@@ -61,20 +62,20 @@ export const NodeOptions = {
             }
         }
     },
-    environmentVariables: {
-        type: 'object',
-        title: 'Environment Variables',
-        default: {},
+    launchArguments: {
+        type: 'array',
+        title: 'Launch Arguments',
+        default: [],
         visible: {
             runType: {
                 contains: [Runtype.Script, Runtype.CurrentFile]
             }
         }
     },
-    launchArguments: {
-        type: 'array',
-        title: 'Launch Arguments',
-        default: [],
+    environmentVariables: {
+        type: 'object',
+        title: 'Environment Variables',
+        default: {},
         visible: {
             runType: {
                 contains: [Runtype.Script, Runtype.CurrentFile]

@@ -65,6 +65,7 @@ export class NodePlugin {
         return __awaiter(this, void 0, void 0, function* () {
             this.client.console.clear();
             let options = this.client.getOptions();
+            console.log(options);
             switch (options.runType) {
                 case Runtype.CurrentFile:
                     let editor = atom.workspace.getActiveTextEditor();

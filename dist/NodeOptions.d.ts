@@ -34,6 +34,7 @@ export declare const NodeOptions: {
         type: string;
         title: string;
         default: string;
+        description: string;
         visible: {
             runType: {
                 contains: string[];
@@ -60,20 +61,20 @@ export declare const NodeOptions: {
             };
         };
     };
-    environmentVariables: {
+    launchArguments: {
         type: string;
         title: string;
-        default: {};
+        default: any[];
         visible: {
             runType: {
                 contains: string[];
             };
         };
     };
-    launchArguments: {
+    environmentVariables: {
         type: string;
         title: string;
-        default: any[];
+        default: {};
         visible: {
             runType: {
                 contains: string[];

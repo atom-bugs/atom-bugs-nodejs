@@ -2,7 +2,7 @@
 
 export const Runtype = {
   CurrentFile: 'Current File',
-  Script: 'Script',
+  Script: 'Project',
   Remote: 'Remote'
 }
 
@@ -19,7 +19,7 @@ export const NodeOptions = {
     default: '/usr/local/bin/node',
     visible: {
       runType: {
-        contains: [Runtype.Script, Runtype.CurrentFile]
+        contains: [ Runtype.Script, Runtype.CurrentFile ]
       }
     }
   },
@@ -29,7 +29,7 @@ export const NodeOptions = {
     default: 5858,
     visible: {
       runType: {
-        contains: [Runtype.Script, Runtype.CurrentFile]
+        contains: [ Runtype.Script, Runtype.CurrentFile ]
       }
     }
   },
@@ -37,9 +37,10 @@ export const NodeOptions = {
     type: 'string',
     title: 'Source Script',
     default: 'Current File',
+    description: 'Enter the file path relative to the current project workspace.',
     visible: {
       runType: {
-        contains: [Runtype.Script]
+        contains: [ Runtype.Script ]
       }
     }
   },
@@ -49,7 +50,7 @@ export const NodeOptions = {
     default: 'localhost',
     visible: {
       runType: {
-        contains: [Runtype.Remote]
+        contains: [ Runtype.Remote ]
       }
     }
   },
@@ -59,17 +60,7 @@ export const NodeOptions = {
     default: 5858,
     visible: {
       runType: {
-        contains: [Runtype.Remote]
-      }
-    }
-  },
-  environmentVariables: {
-    type: 'object',
-    title: 'Environment Variables',
-    default: {},
-    visible: {
-      runType: {
-        contains: [Runtype.Script, Runtype.CurrentFile]
+        contains: [ Runtype.Remote ]
       }
     }
   },
@@ -79,7 +70,17 @@ export const NodeOptions = {
     default: [],
     visible: {
       runType: {
-        contains: [Runtype.Script, Runtype.CurrentFile]
+        contains: [ Runtype.Script, Runtype.CurrentFile ]
+      }
+    }
+  },
+  environmentVariables: {
+    type: 'object',
+    title: 'Environment Variables',
+    default: {},
+    visible: {
+      runType: {
+        contains: [ Runtype.Script, Runtype.CurrentFile ]
       }
     }
   }
