@@ -68,21 +68,20 @@ export class NodePlugin {
   async didRun () {
     this.client.console.clear()
     let options = this.client.getOptions()
-    console.log(options)
     switch (options.runType) {
       case Runtype.CurrentFile:
-        let editor = atom.workspace.getActiveTextEditor()
-        this.debugger.scriptPath = editor.getPath()
-        this.debugger.binaryPath = options.binaryPath
-        this.debugger.portNumber = options.port
-        this.debugger.executeScript().then(() => {
-          this.client.run()
-        })
-        break
       case Runtype.Script:
-        this.debugger.scriptPath = this.client.getPathFromFile(options.scriptPath)
+        if (options.runType === Runtype.CurrentFile) {
+          let editor = atom.workspace.getActiveTextEditor()
+          this.debugger.scriptPath = editor.getPath()
+        } else {
+          this.debugger.scriptPath = options.scriptPath
+          this.debugger.cwd = this.client.getPath()
+        }
         this.debugger.binaryPath = options.binaryPath
         this.debugger.portNumber = options.port
+        this.debugger.launchArguments = options.launchArguments
+        this.debugger.environmentVariables = options.environmentVariables
         this.debugger.executeScript().then(() => {
           this.client.run()
         })
