@@ -9,12 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { spawn } from 'child_process';
 import { EventEmitter } from 'events';
-import { DebuggerProtocolClient } from './DebuggerProtocolClient';
+import { ChromeDebuggerProtocol } from './ChromeDebuggerProtocol';
 import { dirname } from 'path';
 export class NodeDebugger extends EventEmitter {
     constructor() {
         super(...arguments);
-        this.protocol = new DebuggerProtocolClient();
+        this.protocol = new ChromeDebuggerProtocol();
         this.binaryPath = '/usr/local/bin/node';
         this.hostName = 'localhost';
         this.portNumber = 5858;

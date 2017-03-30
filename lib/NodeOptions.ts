@@ -1,4 +1,4 @@
-'use babel';
+'use babel'
 
 export const Runtype = {
   CurrentFile: 'Current File',
@@ -36,7 +36,6 @@ export const NodeOptions = {
   scriptPath: {
     type: 'string',
     title: 'Source Script',
-    default: 'Current File',
     description: 'Enter the file path relative to the current project workspace.',
     visible: {
       runType: {

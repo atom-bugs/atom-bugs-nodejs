@@ -1,6 +1,12 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
-export declare class DebuggerProtocolClient extends EventEmitter {
+export interface Script {
+    scriptId?: string;
+    url: string;
+    sourceMapURL?: string;
+    sourceMap?: any;
+}
+export declare class ChromeDebuggerProtocol extends EventEmitter {
     private connected;
     private paused;
     private client;
@@ -16,6 +22,7 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     send(method: any, params?: any): Promise<{}>;
     private getSocketTarget(hostname, port);
     connect(hostname: string, port: number): any;
+    private getSourceMapConsumer(mappingPath);
     reset(): void;
     resume(): Promise<{}>;
     pause(): Promise<{}>;
@@ -25,10 +32,12 @@ export declare class DebuggerProtocolClient extends EventEmitter {
     getProperties(options: any): Promise<{}>;
     evaluateOnFrames(expression: string, frames: Array<any>): Promise<{}>;
     evaluate(expression: string): Promise<{}>;
-    getScriptById(scriptId: number): any;
+    getScriptById(scriptId: number): Script;
+    getScriptByUrl(url: string): Script;
     getCallStack(): any[];
     getFrameByIndex(index: number): any;
-    addBreakpoint(url: string, lineNumber: number): Promise<void>;
+    setBreakpointFromScript(script: Script, lineNumber: number): Promise<void>;
+    addBreakpoint(url: string, lineNumber: number): void;
     getBreakpointById(id: any): Promise<any>;
     removeBreakpoint(url: string, lineNumber: number): Promise<{}>;
 }

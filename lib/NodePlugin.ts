@@ -75,6 +75,7 @@ export class NodePlugin {
           let editor = atom.workspace.getActiveTextEditor()
           this.debugger.scriptPath = editor.getPath()
         } else {
+          this.client.console.info(`Running script: ${options.scriptPath}`)
           this.debugger.scriptPath = options.scriptPath
           this.debugger.cwd = this.client.getPath()
         }

@@ -1,22 +1,22 @@
-'use babel';
+'use babel'
 
-import { NodePlugin } from './NodePlugin';
-const { CompositeDisposable, Disposable } = require('atom');
+import { NodePlugin } from './NodePlugin'
+const { CompositeDisposable, Disposable } = require('atom')
 
 export default {
   pluginManager: null,
   plugin: null,
   consumeBugsService (pluginManager) {
-    this.plugin = new NodePlugin();
-    this.pluginManager = pluginManager;
-    this.pluginManager.addPlugin(this.plugin);
+    this.plugin = new NodePlugin()
+    this.pluginManager = pluginManager
+    this.pluginManager.addPlugin(this.plugin)
   },
   activate () {
-    require('atom-package-deps').install('atom-bugs-nodejs', true);
+    require('atom-package-deps').install('atom-bugs-nodejs', true)
   },
   deactivate () {
     if (this.bugs) {
-      this.pluginManager.removePlugin(this.plugin);
+      this.pluginManager.removePlugin(this.plugin)
     }
   }
-};
+}

@@ -33,7 +33,6 @@ export declare const NodeOptions: {
     scriptPath: {
         type: string;
         title: string;
-        default: string;
         description: string;
         visible: {
             runType: {

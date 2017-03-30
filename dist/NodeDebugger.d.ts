@@ -1,9 +1,9 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
-import { DebuggerProtocolClient } from './DebuggerProtocolClient';
+import { ChromeDebuggerProtocol } from './ChromeDebuggerProtocol';
 export declare class NodeDebugger extends EventEmitter {
     private childProcess;
-    protocol: DebuggerProtocolClient;
+    protocol: ChromeDebuggerProtocol;
     scriptPath: string;
     binaryPath: string;
     hostName: string;

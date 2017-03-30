@@ -9,7 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { request } from 'http';
 import { EventEmitter } from 'events';
-export class DebuggerProtocolClient extends EventEmitter {
+import { join, parse } from 'path';
+import { readFile } from 'fs';
+const { SourceMapConsumer } = require('source-map');
+export class ChromeDebuggerProtocol extends EventEmitter {
     constructor() {
         super(...arguments);
         this.connected = false;
@@ -28,6 +31,10 @@ export class DebuggerProtocolClient extends EventEmitter {
         return this.paused;
     }
     disconnect() {
+        if (this.client) {
+            this.client.close();
+            this.reset();
+        }
         this.client = null;
         this.paused = false;
         this.connected = false;
@@ -112,7 +119,7 @@ export class DebuggerProtocolClient extends EventEmitter {
                         });
                         resolve(this.connected);
                     });
-                    this.client.onmessage = (message) => {
+                    this.client.onmessage = (message) => __awaiter(this, void 0, void 0, function* () {
                         let response = JSON.parse(message.data);
                         if (response.id > -1 && this.subscriptions[response.id]) {
                             let subscription = this.subscriptions[response.id];
@@ -124,35 +131,72 @@ export class DebuggerProtocolClient extends EventEmitter {
                             }
                         }
                         else {
+                            let params = response.params;
                             switch (response.method) {
                                 case 'Debugger.paused':
-                                    {
-                                        this.paused = true;
-                                        this.callFrames = response.params.callFrames;
-                                        this.emit('pause', response.params);
-                                    }
+                                    this.paused = true;
+                                    this.callFrames = params.callFrames;
+                                    this.emit('pause', params);
                                     break;
                                 case 'Debugger.resumed':
-                                    {
-                                        this.paused = false;
-                                        this.emit('resume', response.params);
-                                    }
+                                    this.paused = false;
+                                    this.emit('resume', params);
                                     break;
                                 case 'Debugger.scriptParsed':
-                                    {
-                                        this.scripts.push(response.params);
+                                    let script = {
+                                        scriptId: params.scriptId,
+                                        url: params.url,
+                                        sourceMapURL: params.sourceMapURL
+                                    };
+                                    if (params.sourceMapURL) {
+                                        let sourcePath = parse(params.url);
+                                        let mappingPath = join(sourcePath.dir, params.sourceMapURL);
+                                        let smc = yield this.getSourceMapConsumer(mappingPath);
+                                        script.sourceMap = {
+                                            getOriginalPosition(lineNumber, columnNumber) {
+                                                let position = smc.originalPositionFor({
+                                                    line: lineNumber,
+                                                    column: columnNumber || 0
+                                                });
+                                                return {
+                                                    url: join(sourcePath.dir, position.source),
+                                                    lineNumber: position.line,
+                                                    columnNumber: position.column
+                                                };
+                                            }
+                                        };
+                                        smc.sources.forEach((sourceUrl) => {
+                                            let mapScript = {
+                                                url: join(sourcePath.dir, sourceUrl),
+                                                sourceMap: {
+                                                    getPosition(lineNumber, columnNumber) {
+                                                        let position = smc.generatedPositionFor({
+                                                            source: sourceUrl,
+                                                            line: lineNumber,
+                                                            column: columnNumber || 0
+                                                        });
+                                                        return {
+                                                            url: params.url,
+                                                            lineNumber: position.line
+                                                        };
+                                                    }
+                                                }
+                                            };
+                                            this.emit('scriptParse', mapScript);
+                                            this.scripts.push(mapScript);
+                                        });
                                     }
+                                    this.emit('scriptParse', script);
+                                    this.scripts.push(script);
                                     break;
                                 case 'Runtime.consoleAPICalled':
-                                    {
-                                        this.emit('console', response.params);
-                                    }
+                                    this.emit('console', params);
                                     break;
                                 default:
                                     console.log(response);
                             }
                         }
-                    };
+                    });
                     this.client.onclose = () => {
                         this.emit('close');
                     };
@@ -172,6 +216,20 @@ export class DebuggerProtocolClient extends EventEmitter {
             else {
                 return false;
             }
+        });
+    }
+    getSourceMapConsumer(mappingPath) {
+        return new Promise((resolve, reject) => {
+            readFile(mappingPath, (err, data) => {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    let rawMapping = JSON.parse(data.toString());
+                    let consumer = new SourceMapConsumer(rawMapping);
+                    resolve(consumer);
+                }
+            });
         });
     }
     reset() {
@@ -245,31 +303,62 @@ export class DebuggerProtocolClient extends EventEmitter {
             return parseInt(s.scriptId) === scriptId;
         });
     }
+    getScriptByUrl(url) {
+        return this.scripts.find((s) => {
+            return s.url === url;
+        });
+    }
     getCallStack() {
         return this.callFrames.map((frame) => {
             frame.location.script = this.getScriptById(parseInt(frame.location.scriptId));
+            let sourceMap = frame.location.script.sourceMap;
+            if (sourceMap) {
+                let position = sourceMap.getOriginalPosition(frame.location.lineNumber + 1, frame.location.columnNumber);
+                frame.location.script.url = position.url;
+                frame.location.lineNumber = position.lineNumber;
+                frame.location.columnNumber = position.columnNumber;
+            }
             return frame;
         });
     }
     getFrameByIndex(index) {
         return this.callFrames[index];
     }
-    addBreakpoint(url, lineNumber) {
+    setBreakpointFromScript(script, lineNumber) {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this
-                .send('Debugger.setBreakpointByUrl', {
-                url,
+            let position = {
+                url: script.url,
                 lineNumber: (lineNumber - 1)
-            })
+            };
+            if (script.sourceMap) {
+                position = script.sourceMap.getPosition(lineNumber);
+            }
+            return yield this
+                .send('Debugger.setBreakpointByUrl', position)
                 .then((response) => {
                 this.breakpoints.push({
                     id: response.breakpointId,
-                    url,
+                    url: script.url,
                     columnNumber: 0,
                     lineNumber
                 });
             });
         });
+    }
+    addBreakpoint(url, lineNumber) {
+        let script = this.getScriptByUrl(url);
+        if (script) {
+            this.setBreakpointFromScript(script, lineNumber);
+        }
+        else {
+            let listener = (script) => {
+                if (script.url === url) {
+                    this.setBreakpointFromScript(script, lineNumber);
+                    this.removeListener('scriptParse', listener);
+                }
+            };
+            this.addListener('scriptParse', listener);
+        }
     }
     getBreakpointById(id) {
         return new Promise((resolve, reject) => {
@@ -284,10 +373,12 @@ export class DebuggerProtocolClient extends EventEmitter {
             return (b.url === url && b.lineNumber === lineNumber);
         });
         if (breakpoint) {
+            let index = this.breakpoints.indexOf(breakpoint);
+            this.breakpoints.splice(index, 1);
             return this.send('Debugger.removeBreakpoint', {
                 breakpointId: breakpoint.id
             });
         }
     }
 }
-//# sourceMappingURL=DebuggerProtocolClient.js.map
+//# sourceMappingURL=ChromeDebuggerProtocol.js.map
