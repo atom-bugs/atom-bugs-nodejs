@@ -18,5 +18,5 @@ function Greet (person: Person) {
   console.log(`Hi!, my name is ${person.firstName} ${person.lastName}`)
 }
 
-// greet
+// Greet
 Greet(person)
