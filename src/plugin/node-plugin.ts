@@ -67,8 +67,10 @@ export class NodePlugin {
 
   // Actions
   async didRun () {
+    console.log('run')
     this.client.console.clear()
-    let options = this.client.getOptions()
+    let options = await this.client.getOptions()
+    console.log('options', options)
     switch (options.runType) {
       case Runtype.CurrentFile:
       case Runtype.Script:
