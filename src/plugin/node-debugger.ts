@@ -59,7 +59,12 @@ export class NodeDebugger extends EventEmitter {
 
   connect () {
     this.protocol.reset()
-    return this.protocol.connect(this.hostName, this.portNumber)
+    return this
+      .protocol
+      .connect(this.hostName, this.portNumber)
+      .catch((error) => {
+        this.emit('error', error)
+      })
   }
 
   normalizePath (dir) {
@@ -78,22 +83,25 @@ export class NodeDebugger extends EventEmitter {
       cwd: this.cwd || this.normalizePath(dirname(this.scriptPath)),
       env: this.environmentVariables
     }
+    let output = ''
     // kill if already running
     if (this.childProcess) {
       await this.stopScript()
     }
     // process
     this.childProcess = spawn(this.binaryPath, args, options)
-    this.childProcess.stdout.on('data', (res) => this.emit('out', res))
+    this.childProcess.stdout.setEncoding('utf8')
+    this.childProcess.stderr.setEncoding('utf8')
+    this.childProcess.stdout.on('data', (res) => {
+      this.emit('out', res.toString())
+    })
     this.childProcess.stderr.on('data', (res) => {
-      if (String(res).match(/Waiting for the debugger to disconnect\.\.\./gi)) {
-        this.emit('close')
-      }
+      output = output.concat(res)
       this.emit('err', res)
     })
     this.childProcess.stdout.on('end', (res) => this.emit('out', res))
     this.childProcess.stderr.on('end', (res) => this.emit('err', res))
-    this.childProcess.on('close', (code) => this.emit('close', code))
+    this.childProcess.on('close', (code) => this.emit('close', code, output))
     return this.connect()
   }
 }

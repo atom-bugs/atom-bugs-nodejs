@@ -22,7 +22,7 @@ export declare class NodeDebugger extends EventEmitter {
         name: any;
         value: any;
     }[];
-    connect(): any;
+    connect(): Promise<string | void>;
     normalizePath(dir: any): any;
-    executeScript(): Promise<any>;
+    executeScript(): Promise<string | void>;
 }

@@ -21,7 +21,7 @@ export declare class NodeDebuggerProtocol extends EventEmitter {
     disconnect(): void;
     send(method: any, params?: any): Promise<{}>;
     private getSocketTarget(hostname, port);
-    connect(hostname: string, port: number): any;
+    connect(hostname: string, port: number): Promise<string>;
     private getSourceMapConsumer(mappingPath);
     reset(): void;
     resume(): Promise<{}>;

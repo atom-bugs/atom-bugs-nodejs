@@ -95,9 +95,9 @@ export class NodeDebuggerProtocol extends EventEmitter {
     })
   }
 
-  async connect (hostname: string, port: number) {
+  connect (hostname: string, port: number) {
     this.retry++
-    let target = await this
+    return this
       .getSocketTarget(hostname, port)
       .then((socketUrl: string) => {
         return new Promise((resolve, reject) => {
@@ -105,8 +105,14 @@ export class NodeDebuggerProtocol extends EventEmitter {
           this.connected = false
           this.client = new WebSocket(socketUrl)
           this.client.onerror = (error) => {
-            this.emit('error', error)
-            reject(error)
+            if (this.retry < 3) {
+              setTimeout(() => {
+                resolve(this.connect(hostname, port))
+              }, 500)
+            } else {
+              this.emit('error', error)
+              reject(error)
+            }
           }
           this.client.onopen = async () => {
             await Promise
@@ -215,18 +221,6 @@ export class NodeDebuggerProtocol extends EventEmitter {
           }
         })
       })
-      .catch((message) => {
-        if (this.retry === 3) {
-          console.error(message)
-        }
-      })
-    if (target) {
-      return true
-    } else if (this.retry < 3) {
-      return this.connect(hostname, port)
-    } else {
-      return false
-    }
   }
 
   private getSourceMapConsumer (mappingPath: string): Promise<any>  {

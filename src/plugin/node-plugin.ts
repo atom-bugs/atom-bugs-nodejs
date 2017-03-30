@@ -14,11 +14,14 @@ export class NodePlugin {
 
   constructor () {
     this.debugger = new NodeDebugger()
-    // this.debugger.on('err', (message) => {
-    //   if (message) {
-    //     this.client.console.info(message.toString())
-    //   }
-    // })
+    this.debugger.on('close', (code, output) => {
+      if (code) {
+        this.client.console.error(output)
+      }
+    })
+    this.debugger.on('error', (message) => {
+      this.client.console.error(message)
+    })
     this.debugger.protocol.on('console', (params) => {
       params.args.forEach((a) => {
         switch (a.type) {
