@@ -8,9 +8,7 @@ import { NodeDebuggerProtocol }  from '../protocol/node-debugger-protocol'
 import { dirname } from 'path'
 
 export class NodeDebugger extends EventEmitter {
-
   private childProcess: any
-
   public protocol: NodeDebuggerProtocol = new NodeDebuggerProtocol()
   public scriptPath: string
   public binaryPath: string = '/usr/local/bin/node'
@@ -19,7 +17,6 @@ export class NodeDebugger extends EventEmitter {
   public portNumber: number = 5858
   public launchArguments: Array<string> = []
   public environmentVariables: Object = {}
-
   public stopScript () {
     return new Promise<boolean>((resolve) => {
       this.childProcess.kill()
@@ -27,7 +24,6 @@ export class NodeDebugger extends EventEmitter {
       resolve(true)
     })
   }
-
   public getCallStack () {
     let callStack = this.protocol.getCallStack()
     return callStack.map((frame) => {
@@ -39,7 +35,6 @@ export class NodeDebugger extends EventEmitter {
       }
     })
   }
-
   public getScope () {
     let firstFrame = this.protocol.getFrameByIndex(0)
     let scope = [...firstFrame.scopeChain]
@@ -56,7 +51,6 @@ export class NodeDebugger extends EventEmitter {
       }
     })
   }
-
   connect () {
     this.protocol.reset()
     return this
@@ -66,11 +60,9 @@ export class NodeDebugger extends EventEmitter {
         this.emit('error', error.toString())
       })
   }
-
   normalizePath (dir) {
     return dir.replace(/^~/, process.env.HOME)
   }
-
   async executeScript () {
     let args = [
       `--inspect`,
