@@ -15,9 +15,7 @@ export class NodePlugin {
   constructor () {
     this.debugger = new NodeDebugger()
     this.debugger.on('close', (code, output) => {
-      if (code) {
-        this.client.console.error(output)
-      }
+      if (code) this.client.console.error(output)
     })
     this.debugger.on('error', (message) => {
       this.client.console.error(message)

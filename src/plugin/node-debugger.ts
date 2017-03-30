@@ -63,7 +63,7 @@ export class NodeDebugger extends EventEmitter {
       .protocol
       .connect(this.hostName, this.portNumber)
       .catch((error) => {
-        this.emit('error', error)
+        this.emit('error', error.toString())
       })
   }
 
