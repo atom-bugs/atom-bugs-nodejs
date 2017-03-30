@@ -167,7 +167,7 @@ export class NodeDebuggerProtocol extends EventEmitter {
                         })
                         return {
                           url: join(sourcePath.dir, position.source),
-                          lineNumber: position.line,
+                          lineNumber: position.line - 1,
                           columnNumber: position.column
                         }
                       }
@@ -185,7 +185,7 @@ export class NodeDebuggerProtocol extends EventEmitter {
                             })
                             return {
                               url: params.url,
-                              lineNumber: position.line
+                              lineNumber: position.line - 1
                             }
                           }
                         }
@@ -345,7 +345,7 @@ export class NodeDebuggerProtocol extends EventEmitter {
   public async setBreakpointFromScript (script: Script, lineNumber: number) {
     let position = {
       url: script.url,
-      lineNumber: (lineNumber - 1)
+      lineNumber: lineNumber
     }
     if (script.sourceMap) {
       position = script.sourceMap.getPosition(lineNumber)

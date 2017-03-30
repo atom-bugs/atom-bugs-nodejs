@@ -10,8 +10,8 @@ export declare class NodePlugin {
     didStop(): void;
     didResume(): void;
     didPause(): Promise<void>;
-    didAddBreakpoint(filePath: any, fileNumber: any): void;
-    didRemoveBreakpoint(filePath: any, fileNumber: any): void;
+    didAddBreakpoint(filePath: any, lineNumber: any): void;
+    didRemoveBreakpoint(filePath: any, lineNumber: any): void;
     didStepOver(): void;
     didStepInto(): void;
     didStepOut(): void;

@@ -46,6 +46,7 @@ export class NodePlugin {
       if (params.hitBreakpoints && params.hitBreakpoints.length > 0) {
         params.hitBreakpoints.forEach(async (id) => {
           let breakpoint = await this.debugger.protocol.getBreakpointById(id)
+          console.log('break', breakpoint)
           this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber)
         })
       }
@@ -109,14 +110,14 @@ export class NodePlugin {
       this.debugger.protocol.pause()
     }
   }
-  didAddBreakpoint (filePath, fileNumber) {
+  didAddBreakpoint (filePath, lineNumber) {
     if (this.debugger.protocol.isConnected()) {
-      this.debugger.protocol.addBreakpoint(filePath, fileNumber)
+      this.debugger.protocol.addBreakpoint(filePath, lineNumber)
     }
   }
-  didRemoveBreakpoint (filePath, fileNumber) {
+  didRemoveBreakpoint (filePath, lineNumber) {
     if (this.debugger.protocol.isConnected()) {
-      this.debugger.protocol.removeBreakpoint(filePath, fileNumber)
+      this.debugger.protocol.removeBreakpoint(filePath, lineNumber)
     }
   }
 
