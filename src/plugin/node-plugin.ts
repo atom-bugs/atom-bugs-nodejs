@@ -14,11 +14,11 @@ export class NodePlugin {
 
   constructor () {
     this.debugger = new NodeDebugger()
-    this.debugger.on('err', (message) => {
-      if (message) {
-        this.client.console.info(message.toString())
-      }
-    })
+    // this.debugger.on('err', (message) => {
+    //   if (message) {
+    //     this.client.console.info(message.toString())
+    //   }
+    // })
     this.debugger.protocol.on('console', (params) => {
       params.args.forEach((a) => {
         switch (a.type) {
@@ -46,7 +46,6 @@ export class NodePlugin {
       if (params.hitBreakpoints && params.hitBreakpoints.length > 0) {
         params.hitBreakpoints.forEach(async (id) => {
           let breakpoint = await this.debugger.protocol.getBreakpointById(id)
-          console.log('break', breakpoint)
           this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber)
         })
       }
@@ -76,12 +75,14 @@ export class NodePlugin {
           let editor = atom.workspace.getActiveTextEditor()
           this.debugger.scriptPath = editor.getPath()
         } else {
-          this.client.console.info(`Running script: ${options.scriptPath}`)
           this.debugger.scriptPath = options.scriptPath
           this.debugger.cwd = this.client.getPath()
         }
+        this.client.console.info(`Starting Debugger on port ${options.port}`)
+        this.client.console.info(`Running script: ${this.debugger.scriptPath}`)
         this.debugger.binaryPath = options.binaryPath
         this.debugger.portNumber = options.port
+
         this.debugger.launchArguments = options.launchArguments
         this.debugger.environmentVariables = options.environmentVariables
         this.debugger.executeScript().then(() => {

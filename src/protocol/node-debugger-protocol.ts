@@ -197,6 +197,9 @@ export class NodeDebuggerProtocol extends EventEmitter {
                   this.emit('scriptParse', script)
                   this.scripts.push(script)
                   break
+                case 'Runtime.exceptionThrown':
+                  this.emit('exception', params)
+                  break
                 case 'Runtime.consoleAPICalled':
                   this.emit('console', params)
                   break
