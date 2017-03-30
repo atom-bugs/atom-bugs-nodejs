@@ -1,6 +1,6 @@
 'use babel'
 
-import { NodePlugin } from './NodePlugin'
+import { NodePlugin } from './plugin/node-plugin'
 const { CompositeDisposable, Disposable } = require('atom')
 
 export default {

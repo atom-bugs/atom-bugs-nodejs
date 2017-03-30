@@ -1,7 +1,7 @@
 'use babel'
 
-import { NodeDebugger } from './NodeDebugger'
-import { Runtype, NodeOptions } from './NodeOptions'
+import { NodeDebugger } from './node-debugger'
+import { Runtype, NodeOptions } from './node-options'
 
 export class NodePlugin {
 

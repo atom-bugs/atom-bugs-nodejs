@@ -4,14 +4,14 @@
 // const EventEmitter = require('events')
 import { spawn } from 'child_process'
 import { EventEmitter }  from 'events'
-import { ChromeDebuggerProtocol }  from './ChromeDebuggerProtocol'
+import { NodeDebuggerProtocol }  from '../protocol/node-debugger-protocol'
 import { dirname } from 'path'
 
 export class NodeDebugger extends EventEmitter {
 
   private childProcess: any
 
-  public protocol: ChromeDebuggerProtocol = new ChromeDebuggerProtocol()
+  public protocol: NodeDebuggerProtocol = new NodeDebuggerProtocol()
   public scriptPath: string
   public binaryPath: string = '/usr/local/bin/node'
   public hostName: string = 'localhost'

@@ -13,7 +13,7 @@ export interface Script {
   sourceMap?: any
 }
 
-export class ChromeDebuggerProtocol extends EventEmitter {
+export class NodeDebuggerProtocol extends EventEmitter {
 
   private connected: boolean = false
   private paused: boolean = false
