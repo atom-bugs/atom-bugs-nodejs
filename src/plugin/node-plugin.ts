@@ -4,10 +4,8 @@ import { NodeDebugger } from './node-debugger'
 import { Runtype, NodeOptions } from './node-options'
 
 export class NodePlugin {
-
   private debugger: NodeDebugger
   private client: any
-
   public name: String = 'Node.js'
   public iconPath: String = 'atom://atom-bugs-nodejs/icons/nodejs.svg'
   public options: Object = NodeOptions
@@ -71,10 +69,8 @@ export class NodePlugin {
 
   // Actions
   async didRun () {
-    console.log('run')
     this.client.console.clear()
     let options = await this.client.getOptions()
-    console.log('options', options)
     switch (options.runType) {
       case Runtype.CurrentFile:
       case Runtype.Script:
