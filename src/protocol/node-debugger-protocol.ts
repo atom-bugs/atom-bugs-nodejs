@@ -167,10 +167,16 @@ export class NodeDebuggerProtocol extends EventEmitter {
                     let smc = await this.getSourceMapConsumer(mappingPath)
                     script.sourceMap = {
                       getOriginalPosition (lineNumber: number, columnNumber?: number) {
-                        let position = smc.originalPositionFor({
-                          line: lineNumber,
-                          column: columnNumber || 0
-                        })
+                        let lookup = {
+                          line: lineNumber + 1,
+                          column: columnNumber || 0,
+                          bias: SourceMapConsumer.LEAST_UPPER_BOUND
+                        }
+                        let position = smc.originalPositionFor(lookup)
+                        if (position.source === null) {
+                          lookup.bias = SourceMapConsumer.GREATEST_LOWER_BOUND
+                          position = smc.originalPositionFor(lookup)
+                        }
                         if (position.source) {
                           return {
                             url: join(sourcePath.dir, position.source || ''),
@@ -188,11 +194,17 @@ export class NodeDebuggerProtocol extends EventEmitter {
                         url: join(sourcePath.dir, sourceUrl),
                         sourceMap: {
                           getPosition (lineNumber: number, columnNumber?: number) {
-                            let position = smc.generatedPositionFor({
+                            let lookup = {
                               source: sourceUrl,
-                              line: lineNumber,
-                              column: columnNumber || 0
-                            })
+                              line: lineNumber + 1,
+                              column: columnNumber || 0,
+                              bias: SourceMapConsumer.LEAST_UPPER_BOUND
+                            }
+                            let position = smc.generatedPositionFor(lookup)
+                            if (position.line === null) {
+                              lookup.bias = SourceMapConsumer.GREATEST_LOWER_BOUND
+                              position = smc.generatedPositionFor(lookup)
+                            }
                             return {
                               url: params.url,
                               lineNumber: position.line - 1
@@ -329,7 +341,7 @@ export class NodeDebuggerProtocol extends EventEmitter {
       frame.location.script = this.getScriptById(parseInt(frame.location.scriptId))
       let sourceMap = frame.location.script.sourceMap
       if (sourceMap) {
-        let position = sourceMap.getOriginalPosition(parseInt(frame.location.lineNumber) + 1,
+        let position = sourceMap.getOriginalPosition(frame.location.lineNumber,
           parseInt(frame.location.columnNumber))
         if (position) {
           frame.location.script.url = position.url
@@ -358,6 +370,7 @@ export class NodeDebuggerProtocol extends EventEmitter {
     }
     if (script.sourceMap) {
       position = script.sourceMap.getPosition(lineNumber)
+      console.log('generated', lineNumber, position)
     }
     return await this
       .send('Debugger.setBreakpointByUrl', position)
