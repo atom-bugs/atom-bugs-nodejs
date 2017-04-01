@@ -171,10 +171,14 @@ export class NodeDebuggerProtocol extends EventEmitter {
                           line: lineNumber,
                           column: columnNumber || 0
                         })
-                        return {
-                          url: join(sourcePath.dir, position.source),
-                          lineNumber: position.line - 1,
-                          columnNumber: position.column
+                        if (position.source) {
+                          return {
+                            url: join(sourcePath.dir, position.source || ''),
+                            lineNumber: position.line - 1,
+                            columnNumber: position.column
+                          }
+                        } else {
+                          return false
                         }
                       }
                     }
@@ -321,18 +325,26 @@ export class NodeDebuggerProtocol extends EventEmitter {
   }
 
   public getCallStack () {
-    return this.callFrames.map((frame: any) => {
+    return this.callFrames.filter((frame: any) => {
       frame.location.script = this.getScriptById(parseInt(frame.location.scriptId))
       let sourceMap = frame.location.script.sourceMap
       if (sourceMap) {
-        let position = sourceMap.getOriginalPosition(frame.location.lineNumber + 1,
-          frame.location.columnNumber)
-        frame.location.script.url = position.url
-        frame.location.lineNumber = position.lineNumber
-        frame.location.columnNumber = position.columnNumber
+        let position = sourceMap.getOriginalPosition(parseInt(frame.location.lineNumber) + 1,
+          parseInt(frame.location.columnNumber))
+        if (position) {
+          frame.location.script.url = position.url
+          frame.location.lineNumber = position.lineNumber
+          frame.location.columnNumber = position.columnNumber
+          return true
+        } else {
+          return false
+        }
       }
-      return frame
+      return true
     })
+    // .map((frame: any) => {
+    //   return frame
+    // })
   }
 
   public getFrameByIndex (index: number) {
