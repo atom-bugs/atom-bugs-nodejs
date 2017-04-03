@@ -1,9 +1,7 @@
-'use babel'
-
 import { NodePlugin } from './plugin/node-plugin'
 const { CompositeDisposable, Disposable } = require('atom')
 
-export default {
+module.exports = {
   pluginManager: null,
   plugin: null,
   consumeBugsService (pluginManager) {
@@ -15,7 +13,10 @@ export default {
     require('atom-package-deps').install('atom-bugs-nodejs', true)
   },
   deactivate () {
-    if (this.bugs) {
+    if (this.plugin) {
+      this.plugin.didStop()
+    }
+    if (this.pluginManager) {
       this.pluginManager.removePlugin(this.plugin)
     }
   }

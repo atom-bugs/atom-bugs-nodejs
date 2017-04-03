@@ -1,5 +1,3 @@
-'use babel'
-
 export const Runtype = {
   CurrentFile: 'Current File',
   Script: 'Project',

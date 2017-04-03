@@ -1,15 +1,16 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "declaration": true,
-    "noImplicitAny": false,
-    "removeComments": true,
+    "target": "es5",
+    "moduleResolution": "node",
+    "lib": ["es6", "dom"],
     "outDir": "lib",
+    "sourceMap": true,
     "typeRoots": [
       "node_modules/@types"
     ],
-    "sourceMap": true,
-    "inlineSources": true
+    "inlineSources": true,
+    "removeComments": true,
+    "skipLibCheck": true
   },
   "compileOnSave": false,
   "include": [

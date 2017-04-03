@@ -7,23 +7,22 @@ export interface Script {
     sourceMap?: any;
 }
 export declare class NodeDebuggerProtocol extends EventEmitter {
+    private retry;
     private connected;
     private paused;
     private client;
     private nextRequestId;
-    private retry;
     private breakpoints;
     private scripts;
     private callFrames;
     private subscriptions;
     isConnected(): boolean;
     isPaused(): boolean;
+    reset(): void;
     disconnect(): void;
     send(method: any, params?: any): Promise<{}>;
-    private getSocketTarget(hostname, port);
-    connect(hostname: string, port: number): Promise<string>;
+    connect(socketUrl: string): Promise<{}>;
     private getSourceMapConsumer(mappingPath);
-    reset(): void;
     resume(): Promise<{}>;
     pause(): Promise<{}>;
     stepOver(): Promise<{}>;

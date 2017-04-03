@@ -1,169 +1,54 @@
-'use babel'
+import { ChromeDebuggingProtocolPlugin } from 'atom-bugs-chrome-debugger/lib/plugin'
 
+import { NodeLauncher } from './node-launcher'
 import { NodeDebugger } from './node-debugger'
 import { Runtype, NodeOptions } from './node-options'
 
-export class NodePlugin {
-  private debugger: NodeDebugger
-  private client: any
+export class NodePlugin extends ChromeDebuggingProtocolPlugin {
+
+  public options: Object = NodeOptions
   public name: String = 'Node.js'
   public iconPath: String = 'atom://atom-bugs-nodejs/icons/nodejs.svg'
-  public options: Object = NodeOptions
+  public launcher: NodeLauncher = new NodeLauncher()
+  public debugger: NodeDebugger = new NodeDebugger()
 
   constructor () {
-    this.debugger = new NodeDebugger()
-    this.debugger.on('close', (code, output) => {
-      if (code) this.client.console.error(output)
-    })
-    this.debugger.on('error', (message) => {
-      this.client.console.error(message)
-    })
-    this.debugger.protocol.on('exception', (params) => {
-      let details = params.exceptionDetails
-      this.client.console.error(details.exception.description)
-    })
-    this.debugger.protocol.on('console', (params) => {
-      params.args.forEach((a) => {
-        switch (a.type) {
-          case 'string': {
-            this.client.console[params.type](a.value)
-          } break
-          default:
-            console.log('console called', params)
-        }
-      })
-    })
-    this.debugger.protocol.on('start', () => {
-      // apply breakpoints
-      let breaks = this.client.getBreakpoints()
-      breaks.forEach((b) => {
-        let {filePath, lineNumber} = b
-        this.didAddBreakpoint(filePath, lineNumber)
-      })
-    })
-    this.debugger.protocol.on('close', (message) => {
-      // set status to stop
-      this.client.stop()
-    })
-    this.debugger.protocol.on('pause', (params) => {
-      if (params.hitBreakpoints && params.hitBreakpoints.length > 0) {
-        params.hitBreakpoints.forEach(async (id) => {
-          let breakpoint = await this.debugger.protocol.getBreakpointById(id)
-          this.client.activateBreakpoint(breakpoint.url, breakpoint.lineNumber)
-        })
-      }
-      this.client.setCallStack(this.debugger.getCallStack())
-      this.client.setScope(this.debugger.getScope())
-      // set status to pause
-      this.client.pause()
-    })
-    this.debugger.protocol.on('resume', () => {
-      // set status to resume
-      this.client.resume()
-    })
-  }
-
-  register (client) {
-    this.client = client
+    super()
+    this.addEventListeners()
   }
 
   // Actions
   async didRun () {
-    this.client.console.clear()
-    let options = await this.client.getOptions()
+    this.pluginClient.console.clear()
+    let options = await this.pluginClient.getOptions()
     switch (options.runType) {
       case Runtype.CurrentFile:
       case Runtype.Script:
         if (options.runType === Runtype.CurrentFile) {
           let editor = atom.workspace.getActiveTextEditor()
-          this.debugger.scriptPath = editor.getPath()
+          this.launcher.scriptPath = editor.getPath()
         } else {
-          this.debugger.scriptPath = options.scriptPath
-          this.debugger.cwd = this.client.getPath()
+          this.launcher.scriptPath = options.scriptPath
+          this.launcher.cwd = this.pluginClient.getPath()
         }
-        this.client.console.info(`Starting Debugger on port ${options.port}`)
-        this.client.console.info(`Running script: ${this.debugger.scriptPath}`)
-        this.debugger.binaryPath = options.binaryPath
-        this.debugger.portNumber = options.port
+        this.pluginClient.console.info(`Starting Debugger on port ${options.port}`)
+        this.pluginClient.console.info(`Running script: ${this.launcher.scriptPath}`)
+        this.launcher.binaryPath = options.binaryPath
+        this.launcher.portNumber = options.port
 
-        this.debugger.launchArguments = options.launchArguments
-        this.debugger.environmentVariables = options.environmentVariables
-        this.debugger.executeScript().then(() => {
-          this.client.run()
-        })
+        this.launcher.launchArguments = options.launchArguments
+        this.launcher.environmentVariables = options.environmentVariables
+        let scriptSocketUrl = await this.launcher.start()
+        this.pluginClient.run()
+        this.debugger.connect(scriptSocketUrl)
         break
       case Runtype.Remote:
-        this.debugger.hostName = options.remoteUrl
-        this.debugger.portNumber = options.remotePort
-        this.debugger.connect().then(() => {
-          this.client.run()
-        })
+        this.launcher.hostName = options.remoteUrl
+        this.launcher.portNumber = options.remotePort
+        let remoteSocketUrl = await this.launcher.findSocketUrl()
+        this.pluginClient.run()
+        this.debugger.connect(remoteSocketUrl)
         break
-    }
-  }
-  didStop () {
-    this.client.console.clear()
-    this.debugger.stopScript().then(() => this.client.stop())
-  }
-  didResume () {
-    this.debugger.protocol.resume()
-  }
-  async didPause () {
-    let connected = this.debugger.protocol.isConnected()
-    if (connected) {
-      this.debugger.protocol.pause()
-    }
-  }
-  didAddBreakpoint (filePath, lineNumber) {
-    if (this.debugger.protocol.isConnected()) {
-      this.debugger.protocol.addBreakpoint(filePath, lineNumber)
-    }
-  }
-  didRemoveBreakpoint (filePath, lineNumber) {
-    if (this.debugger.protocol.isConnected()) {
-      this.debugger.protocol.removeBreakpoint(filePath, lineNumber)
-    }
-  }
-
-  didStepOver () {
-    this.debugger.protocol.stepOver()
-  }
-
-  didStepInto () {
-    this.debugger.protocol.stepInto()
-  }
-
-  didStepOut () {
-    this.debugger.protocol.stepOut()
-  }
-
-  async didRequestProperties (request, propertyView) {
-    let properties: any = await this.debugger.protocol.getProperties({
-      accessorPropertiesOnly: false,
-      generatePreview: false,
-      objectId: request.objectId,
-      ownProperties: true
-    })
-    propertyView.insertFromDescription(properties.result) // , ...accessors.result
-  }
-
-  async didEvaluateExpression (expression: string, evaluationView) {
-    let connected = this.debugger.protocol.isConnected()
-    let paused = this.debugger.protocol.isPaused()
-    if (connected && paused) {
-      let response: any = await this
-        .debugger
-        .protocol
-        .evaluate(expression)
-        .catch((e) => {
-          // do nothing
-        })
-      if (response) {
-        let result = response.result
-        if (result) {
-          evaluationView.insertFromResult(result)
-        }
-      }
     }
   }
 }
