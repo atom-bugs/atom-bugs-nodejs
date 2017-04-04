@@ -45,7 +45,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
       case Runtype.Remote:
         this.launcher.hostName = options.remoteUrl
         this.launcher.portNumber = options.remotePort
-        let remoteSocketUrl = await this.launcher.findSocketUrl()
+        let remoteSocketUrl = await this.launcher.getSocketUrl()
         this.pluginClient.run()
         this.debugger.connect(remoteSocketUrl)
         break
