@@ -21,6 +21,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   async didRun () {
     this.pluginClient.console.clear()
     let options = await this.pluginClient.getOptions()
+    this.debugger.skipFirstPause = true
     switch (options.runType) {
       case Runtype.CurrentFile:
       case Runtype.Script:

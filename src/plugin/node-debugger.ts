@@ -1,18 +1,19 @@
 import { ChromeDebuggingProtocolDebugger } from 'atom-bugs-chrome-debugger/lib/debugger'
 
 export class NodeDebugger extends ChromeDebuggingProtocolDebugger {
+  public skipFirstPause: boolean = true
   constructor () {
     super()
   }
-  getFeatures (): Array<Promise<any>> {
-    var {
-      Profiler,
-      Runtime,
-      Debugger,
-      Page
-    } = this.domains
-
-    return [
+  async didConnect (domains): Promise<any> {
+    var { Profiler, Runtime, Debugger, Page } = domains
+    Debugger.paused((params) => {
+      if (this.skipFirstPause) {
+        Debugger.resume()
+        this.skipFirstPause = false
+      }
+    })
+    return await Promise.all([
       Runtime.enable(),
       Debugger.enable(),
       Debugger.setPauseOnExceptions({ state: 'none' }),
@@ -24,6 +25,6 @@ export class NodeDebugger extends ChromeDebuggingProtocolDebugger {
       Profiler.setSamplingInterval({ interval: 100 }),
       Debugger.setBlackboxPatterns({ patterns: [] }),
       Runtime.runIfWaitingForDebugger()
-    ]
+    ])
   }
 }
