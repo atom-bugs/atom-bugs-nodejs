@@ -17,9 +17,17 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
     this.addEventListeners()
   }
 
+  didLaunchError (message: string) {
+    atom.notifications.addError('Atom Bugs: Node.js', {
+      detail: `Launcher error: ${message}`,
+      dismissable: true
+    })
+  }
+
   // Actions
   async didRun () {
     this.pluginClient.console.clear()
+    let socketUrl
     let options = await this.pluginClient.getOptions()
     this.debugger.skipFirstPause = true
     switch (options.runType) {
@@ -32,24 +40,22 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
           this.launcher.scriptPath = options.scriptPath
           this.launcher.cwd = this.pluginClient.getPath()
         }
-        this.pluginClient.console.info(`Starting Debugger on port ${options.port}`)
-        this.pluginClient.console.info(`Running script: ${this.launcher.scriptPath}`)
         this.launcher.binaryPath = options.binaryPath
         this.launcher.portNumber = options.port
 
         this.launcher.launchArguments = options.launchArguments
         this.launcher.environmentVariables = options.environmentVariables
-        let scriptSocketUrl = await this.launcher.start()
-        this.pluginClient.run()
-        this.debugger.connect(scriptSocketUrl)
+        socketUrl = await this.launcher.start()
         break
       case Runtype.Remote:
         this.launcher.hostName = options.remoteUrl
         this.launcher.portNumber = options.remotePort
-        let remoteSocketUrl = await this.launcher.getSocketUrl()
-        this.pluginClient.run()
-        this.debugger.connect(remoteSocketUrl)
+        socketUrl = await this.launcher.getSocketUrl()
         break
+    }
+    if (socketUrl) {
+      this.pluginClient.run()
+      this.debugger.connect(socketUrl)
     }
   }
 }

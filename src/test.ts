@@ -15,8 +15,16 @@ var person: Person = {
 }
 
 function Greet (person: Person) {
-  console.log(`Hi!, my name is ${person.firstName} ${person.lastName}`)
+  console.log(person, `Hi!, my name is ${person.firstName} ${person.lastName}`)
 }
 
 // Greet
 Greet(person)
+
+class MyClass {
+  title: string = 'Hello World'
+}
+
+let test = new MyClass()
+
+console.log(test)
