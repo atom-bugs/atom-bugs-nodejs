@@ -21,6 +21,7 @@
     }
   },
   "dependencies": {
+    "atom-bugs-chrome-debugger": "^0.1.10",
     "atom-package-deps": "^4.4.1"
   },
   "package-deps": [
