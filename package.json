@@ -21,8 +21,9 @@
     }
   },
   "dependencies": {
-    "atom-bugs-chrome-debugger": "^0.1.11",
+    "atom-bugs-chrome-debugger": "^0.1.12",
     "atom-package-deps": "^4.5.0",
+    "chokidar": "^1.6.1",
     "lodash": "^4.17.4"
   },
   "package-deps": [

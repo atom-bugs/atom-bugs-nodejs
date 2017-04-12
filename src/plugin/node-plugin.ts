@@ -4,6 +4,9 @@ import { NodeLauncher } from './node-launcher'
 import { NodeDebugger } from './node-debugger'
 import { Runtype, NodeOptions } from './node-options'
 
+import { watch, FSWatcher } from 'chokidar'
+import { resolve } from 'path'
+
 export class NodePlugin extends ChromeDebuggingProtocolPlugin {
 
   public options: Object = NodeOptions
@@ -11,6 +14,8 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   public iconPath: String = 'atom://atom-bugs-nodejs/icons/nodejs.svg'
   public launcher: NodeLauncher = new NodeLauncher()
   public debugger: NodeDebugger = new NodeDebugger()
+
+  private watcher: FSWatcher
 
   constructor () {
     super()
@@ -24,11 +29,9 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
     })
   }
 
-  // Actions
-  async didRun () {
-    this.pluginClient.console.clear()
+  async start (options: any) {
+    let projectPath = this.pluginClient.getPath()
     let socketUrl
-    let options = await this.pluginClient.getOptions()
     this.debugger.skipFirstPause = true
     switch (options.runType) {
       case Runtype.CurrentFile:
@@ -38,7 +41,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
           this.launcher.scriptPath = editor.getPath()
         } else {
           this.launcher.scriptPath = options.scriptPath
-          this.launcher.cwd = this.pluginClient.getPath()
+          this.launcher.cwd = projectPath
         }
         this.launcher.binaryPath = options.binaryPath
         this.launcher.portNumber = options.port
@@ -57,5 +60,34 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
       this.pluginClient.run()
       this.debugger.connect(socketUrl)
     }
+  }
+
+  async restart (options) {
+    await this.didStop()
+    return this.start(options)
+  }
+
+  // Actions
+  async didRun () {
+    this.pluginClient.console.clear()
+    let options = await this.pluginClient.getOptions()
+    let projectPath = this.pluginClient.getPath()
+    if (this.watcher) {
+      this.watcher.close()
+    }
+    if (options.restartOnChanges) {
+      this.watcher = watch(resolve(projectPath, options.changesPattern), {
+        ignored: [
+          /[\/\\]\./,
+          /node_modules/,
+          /bower_components/
+        ]
+      })
+      this
+        .watcher
+        .on('change', () => this.restart(options))
+        .on('unlink', () => this.restart(options))
+    }
+    return this.start(options)
   }
 }

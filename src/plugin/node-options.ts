@@ -61,6 +61,25 @@ export const NodeOptions = {
       }
     }
   },
+  restartOnChanges: {
+    type: 'boolean',
+    title: 'Restart On Changes',
+    default: false,
+    visible: {
+      runType: {
+        contains: [ Runtype.Script, Runtype.CurrentFile ]
+      }
+    }
+  },
+  changesPattern: {
+    type: 'string',
+    title: 'Changes Pattern',
+    default: '**/*.js',
+    visible: {
+      runType: { is: Runtype.Script },
+      restartOnChanges: { is: true }
+    }
+  },
   launchArguments: {
     type: 'array',
     title: 'Launch Arguments',

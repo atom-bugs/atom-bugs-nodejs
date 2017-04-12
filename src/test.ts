@@ -11,7 +11,7 @@ var person: Person = {
   lastName: 'Medina',
   age: 28,
   active: true,
-  dateOfBirth: new Date()
+  dateOfBirth: new Date(1989, 0, 28)
 }
 
 function Greet (person: Person) {
