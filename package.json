@@ -1,7 +1,7 @@
 {
   "name": "atom-bugs-nodejs",
   "main": "./lib/main",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "author": "Williams Medina <williams.medinaa@gmail.com>",
   "description": "NodeJS Debugger Plugin for Atom Bugs",
   "keywords": [],
