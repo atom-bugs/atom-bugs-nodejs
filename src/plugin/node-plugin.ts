@@ -58,7 +58,10 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
     }
     if (socketUrl) {
       this.pluginClient.run()
-      this.debugger.connect(socketUrl)
+      this.pluginClient.status.update('Connecting to Debugger')
+      await this.debugger.connect(socketUrl)
+      this.pluginClient.status.update('Debugger Attached')
+      this.pluginClient.status.stopLoading()
     }
   }
 
@@ -69,6 +72,8 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
 
   // Actions
   async didRun () {
+    this.pluginClient.status.startLoading()
+    this.pluginClient.status.update('Running process')
     this.pluginClient.console.clear()
     let options = await this.pluginClient.getOptions()
     let projectPath = this.pluginClient.getPath()
@@ -76,7 +81,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
       this.watcher.close()
     }
     if (options.restartOnChanges) {
-      this.watcher = watch(resolve(projectPath, options.changesPattern), {
+      this.watcher = watch(resolve(projectPath, options.changesPattern || ''), {
         ignored: [
           /[\/\\]\./,
           /node_modules/,

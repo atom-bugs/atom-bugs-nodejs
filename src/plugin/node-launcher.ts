@@ -13,19 +13,18 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   }
   getLauncherArguments () {
     let a = [
-      `--inspect`,
-      `--debug-brk=${this.portNumber}`,
-      this.normalizePath(this.scriptPath)
+      // `--inspect`,
+      `--inspect-brk=${this.portNumber}`,
+      this.normalizePath(get(this, 'scriptPath', ''))
     ]
     .concat(this.launchArguments)
     return a
   }
   getProcessOptions () {
-    let projectPath = this.cwd || this.normalizePath(dirname(this.scriptPath))
+    let projectPath = this.cwd || this.normalizePath(dirname(get(this, 'scriptPath', '')))
     let envPath = get(process, 'env.PATH')
     let npmPath = join(projectPath, 'node_modules', '.bin')
     return {
-      detached: true,
       shell: true,
       cwd: projectPath,
       env: extend({
