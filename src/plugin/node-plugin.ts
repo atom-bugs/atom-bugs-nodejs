@@ -66,7 +66,9 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   }
 
   async restart (options) {
+    this.pluginClient.status.startLoading()
     await this.didStop()
+    this.pluginClient.status.update('Restarting to Debugger')
     return this.start(options)
   }
 
