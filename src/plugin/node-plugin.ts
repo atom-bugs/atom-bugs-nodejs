@@ -6,6 +6,7 @@ import { Runtype, NodeOptions } from './node-options'
 
 import { watch, FSWatcher } from 'chokidar'
 import { resolve } from 'path'
+import { get, isUndefined, isString } from 'lodash'
 
 export class NodePlugin extends ChromeDebuggingProtocolPlugin {
 
@@ -30,6 +31,8 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   }
 
   async start (options: any) {
+    this.pluginClient.status.startLoading()
+    this.pluginClient.status.update('Running Node')
     let projectPath = this.pluginClient.getPath()
     let socketUrl
     this.debugger.skipFirstPause = true
@@ -38,35 +41,51 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
       case Runtype.Script:
         if (options.runType === Runtype.CurrentFile) {
           let editor = atom.workspace.getActiveTextEditor()
-          this.launcher.scriptPath = editor.getPath()
+          if (!isUndefined(editor)) {
+            this.launcher.scriptPath = editor.getPath()
+          }
         } else {
           this.launcher.scriptPath = options.scriptPath
           this.launcher.cwd = projectPath
         }
-        this.launcher.binaryPath = options.binaryPath
-        this.launcher.portNumber = options.port
-
-        this.launcher.launchArguments = options.launchArguments
-        this.launcher.environmentVariables = options.environmentVariables
-        socketUrl = await this.launcher.start()
+        if (isString(this.launcher.scriptPath)) {
+          this.launcher.binaryPath = options.binaryPath
+          this.launcher.portNumber = options.port
+          this.launcher.launchArguments = options.launchArguments
+          this.launcher.environmentVariables = options.environmentVariables
+          socketUrl = await this.launcher.start()
+        }
         break
       case Runtype.Remote:
         this.launcher.hostName = options.remoteUrl
         this.launcher.portNumber = options.remotePort
-        socketUrl = await this.launcher.getSocketUrl()
+        socketUrl = await this
+          .launcher
+          .getSocketUrl()
+          .then(() => {
+            this.pluginClient.status.update('Connecting to Debugger')
+          })
         break
     }
     if (socketUrl) {
       this.pluginClient.run()
-      this.pluginClient.status.update('Connecting to Debugger')
-      await this.debugger.connect(socketUrl)
-      this.pluginClient.status.update('Debugger Attached')
+      await this
+        .debugger
+        .connect(socketUrl)
+        .catch((e) => {
+          console.log('e', e)
+        })
+        .then(() => {
+          this.pluginClient.status.update('Debugger Attached')
+          this.pluginClient.status.stopLoading()
+        })
+    } else {
+      this.pluginClient.status.update('Unable to start protocol')
       this.pluginClient.status.stopLoading()
     }
   }
 
   async restart (options) {
-    this.pluginClient.status.startLoading()
     await this.didStop()
     this.pluginClient.status.update('Restarting to Debugger')
     return this.start(options)
@@ -74,8 +93,6 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
 
   // Actions
   async didRun () {
-    this.pluginClient.status.startLoading()
-    this.pluginClient.status.update('Running process')
     this.pluginClient.console.clear()
     let options = await this.pluginClient.getOptions()
     let projectPath = this.pluginClient.getPath()
