@@ -1,6 +1,6 @@
-# Atom Bugs NodeJS package
+# XAtom NodeJS Debugger
 
-NodeJS Debugging Plugin for [atom-bugs](https://github.com/atom-bugs/atom-bugs)
+NodeJS Debugging Plugin for [xatom-debug](https://github.com/willyelm/xatom-debug)
 This Plugin uses the new `--inspect` v8-inspector (node) feature.
 
 ![preview](https://raw.githubusercontent.com/atom-bugs/atom-bugs/master/assets/preview.png)
@@ -8,7 +8,7 @@ This Plugin uses the new `--inspect` v8-inspector (node) feature.
 ### Installation
 
 ```
-apm install atom-bugs-nodejs
+apm install xatom-debug-nodejs
 ```
 
 ### Requirements
