@@ -1,7 +1,7 @@
 {
   "name": "xatom-debug-nodejs",
   "main": "./lib/main",
-  "version": "0.7.13",
+  "version": "0.7.14",
   "author": "Williams Medina <williams.medinaa@gmail.com>",
   "description": "NodeJS Debugger Plugin for xatom-debug",
   "keywords": [],
