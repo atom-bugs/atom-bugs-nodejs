@@ -13,8 +13,8 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   }
   getLauncherArguments () {
     let a = [
-      // `--inspect`,
-      `--inspect-brk=${this.portNumber}`,
+      `--inspect`,
+      `--debug-brk=${this.portNumber}`,
       this.normalizePath(get(this, 'scriptPath', ''))
     ]
     .concat(this.launchArguments)

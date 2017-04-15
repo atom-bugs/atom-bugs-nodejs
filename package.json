@@ -31,6 +31,7 @@
   ],
   "devDependencies": {
     "@types/atom": "0.0.36",
+    "@types/chokidar": "^1.6.0",
     "@types/lodash": "^4.14.62",
     "@types/node": "^7.0.8",
     "typescript": "^2.3.0"
