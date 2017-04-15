@@ -27,7 +27,7 @@
     "lodash": "^4.17.4"
   },
   "package-deps": [
-    "atom-bugs"
+    "xatom-debug"
   ],
   "devDependencies": {
     "@types/atom": "0.0.36",
