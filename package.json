@@ -3,9 +3,9 @@
   "main": "./lib/main",
   "version": "0.7.13",
   "author": "Williams Medina <williams.medinaa@gmail.com>",
-  "description": "NodeJS Debugger Plugin for Atom Bugs",
+  "description": "NodeJS Debugger Plugin for xatom-debug",
   "keywords": [],
-  "repository": "https://github.com/atom-bugs/atom-bugs-nodejs",
+  "repository": "https://github.com/xatom-plugins/xatom-debug-nodejs",
   "license": "MIT",
   "scripts": {
     "start": "tsc -w"
