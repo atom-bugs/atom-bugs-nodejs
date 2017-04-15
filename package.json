@@ -1,5 +1,5 @@
 {
-  "name": "xatom-debug-nodejs",
+  "name": "atom-bugs-nodejs",
   "main": "./lib/main",
   "version": "0.7.13",
   "author": "Williams Medina <williams.medinaa@gmail.com>",
