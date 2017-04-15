@@ -14,9 +14,9 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "consumedServices": {
-    "atom-bugs": {
+    "xatom-debug": {
       "versions": {
-        "1.0.0": "consumeBugsService"
+        "1.0.0": "registerPlugin"
       }
     }
   },

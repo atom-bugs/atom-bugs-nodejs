@@ -12,7 +12,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
 
   public options: Object = NodeOptions
   public name: String = 'Node.js'
-  public iconPath: String = 'atom://atom-bugs-nodejs/icons/nodejs.svg'
+  public iconPath: String = 'atom://xatom-debug-nodejs/icons/nodejs.svg'
   public launcher: NodeLauncher = new NodeLauncher()
   public debugger: NodeDebugger = new NodeDebugger()
 

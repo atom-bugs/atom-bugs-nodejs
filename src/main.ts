@@ -1,16 +1,17 @@
 import { NodePlugin } from './plugin/node-plugin'
 const { CompositeDisposable, Disposable } = require('atom')
+const { install } = require('atom-package-deps')
 
 module.exports = {
   pluginManager: null,
   plugin: null,
-  consumeBugsService (pluginManager) {
+  registerPlugin (pluginManager) {
     this.plugin = new NodePlugin()
     this.pluginManager = pluginManager
     this.pluginManager.addPlugin(this.plugin)
   },
   activate () {
-    require('atom-package-deps').install('atom-bugs-nodejs', true)
+    install('xatom-debug-nodejs', true)
   },
   deactivate () {
     if (this.plugin) {
