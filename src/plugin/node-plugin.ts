@@ -1,4 +1,4 @@
-import { ChromeDebuggingProtocolPlugin } from 'atom-bugs-chrome-debugger/lib/plugin'
+import { ChromeDebuggingProtocolPlugin } from 'xatom-debug-chrome-base/lib/plugin'
 
 import { NodeLauncher } from './node-launcher'
 import { NodeDebugger } from './node-debugger'

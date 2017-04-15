@@ -1,4 +1,4 @@
-import { ChromeDebuggingProtocolDebugger } from 'atom-bugs-chrome-debugger/lib/debugger'
+import { ChromeDebuggingProtocolDebugger } from 'xatom-debug-chrome-base/lib/debugger'
 
 export class NodeDebugger extends ChromeDebuggingProtocolDebugger {
   constructor () {

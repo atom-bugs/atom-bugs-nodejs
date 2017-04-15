@@ -1,4 +1,4 @@
-import { ChromeDebuggingProtocolLauncher } from 'atom-bugs-chrome-debugger/lib/launcher'
+import { ChromeDebuggingProtocolLauncher } from 'xatom-debug-chrome-base/lib/launcher'
 import { dirname, join } from 'path'
 import { get, extend } from 'lodash'
 
