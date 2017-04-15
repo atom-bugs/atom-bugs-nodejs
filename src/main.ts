@@ -1,6 +1,5 @@
 import { NodePlugin } from './plugin/node-plugin'
 const { CompositeDisposable, Disposable } = require('atom')
-const { install } = require('atom-package-deps')
 
 module.exports = {
   pluginManager: null,
@@ -11,7 +10,7 @@ module.exports = {
     this.pluginManager.addPlugin(this.plugin)
   },
   activate () {
-    install('xatom-debug-nodejs', true)
+    require('atom-package-deps').install('xatom-debug-nodejs', true)
   },
   deactivate () {
     if (this.plugin) {
