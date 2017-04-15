@@ -1,5 +1,5 @@
 import { ChromeDebuggingProtocolLauncher } from 'xatom-debug-chrome-base/lib/launcher'
-import { dirname, join } from 'path'
+import { dirname, join, normalize } from 'path'
 import { get, extend } from 'lodash'
 
 export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
@@ -9,14 +9,16 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   public cwd: string
   public scriptPath: string
   normalizePath (dir) {
-    return dir.replace(/^~/, process.env.HOME)
+    return normalize(dir.replace(/^~/, process.env.HOME))
   }
   getLauncherArguments () {
+    let fileTarget = this.normalizePath(get(this, 'scriptPath', ''))
     let launcherArgs = [
       `--inspect`,
       `--debug-brk=${this.portNumber}`,
-      this.normalizePath(get(this, 'scriptPath', ''))
+      `"${fileTarget}"`
     ].concat(this.launchArguments)
+    console.log(launcherArgs)
     return launcherArgs
   }
   getProcessOptions () {
