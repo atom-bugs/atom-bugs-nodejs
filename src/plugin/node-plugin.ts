@@ -31,68 +31,64 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   }
 
   async start (options: any) {
-    this.pluginClient.status.startLoading()
-    this.pluginClient.status.update('Running Node')
-    let projectPath = this.pluginClient.getPath()
-    let socketUrl
-    this.debugger.skipFirstPause = true
-    switch (options.runType) {
-      case Runtype.CurrentFile:
-      case Runtype.Script:
-        if (options.runType === Runtype.CurrentFile) {
-          let editor = atom.workspace.getActiveTextEditor()
-          if (!isUndefined(editor)) {
-            this.launcher.scriptPath = editor.getPath()
+    try {
+      let projectPath = this.pluginClient.getPath()
+      let socketUrl
+      this.debugger.skipFirstPause = true
+      switch (options.runType) {
+        case Runtype.CurrentFile:
+        case Runtype.Script:
+          if (options.runType === Runtype.CurrentFile) {
+            let editor = atom.workspace.getActiveTextEditor()
+            if (!isUndefined(editor)) {
+              this.launcher.scriptPath = editor.getPath()
+            }
+          } else {
+            this.launcher.scriptPath = options.scriptPath
+            this.launcher.cwd = projectPath
           }
-        } else {
-          this.launcher.scriptPath = options.scriptPath
-          this.launcher.cwd = projectPath
-        }
-        if (isString(this.launcher.scriptPath)) {
-          this.launcher.binaryPath = options.binaryPath
-          this.launcher.portNumber = options.port
-          this.launcher.launchArguments = options.launchArguments
-          this.launcher.environmentVariables = options.environmentVariables
-          socketUrl = await this.launcher.start()
-        }
-        break
-      case Runtype.Remote:
-        this.launcher.hostName = options.remoteUrl
-        this.launcher.portNumber = options.remotePort
-        socketUrl = await this
-          .launcher
-          .getSocketUrl()
+          if (isString(this.launcher.scriptPath)) {
+            this.launcher.binaryPath = options.binaryPath
+            this.launcher.portNumber = options.port
+            this.launcher.launchArguments = options.launchArguments
+            this.launcher.environmentVariables = options.environmentVariables
+            socketUrl = await this.launcher.start()
+          }
+          break
+        case Runtype.Remote:
+          this.launcher.hostName = options.remoteUrl
+          this.launcher.portNumber = options.remotePort
+          socketUrl = await this.launcher.getSocketUrl()
+          break
+      }
+      if (socketUrl) {
+        this.pluginClient.run()
+        this.pluginClient.status.update('Connecting to debugger')
+        await this
+          .debugger
+          .connect(socketUrl)
           .then(() => {
-            this.pluginClient.status.update('Connecting to Debugger')
+            this.pluginClient.status.update('Debugger attached')
+            this.pluginClient.status.stopLoading()
           })
-        break
-    }
-    if (socketUrl) {
-      this.pluginClient.run()
-      await this
-        .debugger
-        .connect(socketUrl)
-        .catch((e) => {
-          console.log('e', e)
-        })
-        .then(() => {
-          this.pluginClient.status.update('Debugger Attached')
-          this.pluginClient.status.stopLoading()
-        })
-    } else {
-      this.pluginClient.status.update('Unable to start protocol')
+      }
+    } catch (e) {
+      this.pluginClient.status.update(e)
       this.pluginClient.status.stopLoading()
     }
   }
 
   async restart (options) {
     await this.didStop()
-    this.pluginClient.status.update('Restarting to Debugger')
+    this.pluginClient.status.startLoading()
+    this.pluginClient.status.update('Restarting to debugger')
     return this.start(options)
   }
 
   // Actions
   async didRun () {
+    this.pluginClient.status.startLoading()
+    this.pluginClient.status.update('Running node')
     this.pluginClient.console.clear()
     let options = await this.pluginClient.getOptions()
     let projectPath = this.pluginClient.getPath()
