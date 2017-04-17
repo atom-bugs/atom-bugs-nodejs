@@ -1,4 +1,4 @@
-import { ChromeDebuggingProtocolPlugin } from 'xatom-debug-chrome-base/lib/plugin'
+import { ChromeDebuggingProtocolPlugin } from '/Users/willyelm/Github/xatom-debug-chrome-base/lib/plugin'
 
 import { NodeLauncher } from './node-launcher'
 import { NodeDebugger } from './node-debugger'
@@ -68,12 +68,12 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
           .debugger
           .connect(socketUrl)
           .then(() => {
-            this.pluginClient.status.update('Debugger attached')
+            this.pluginClient.status.update('Debugger attached', 'status-success')
             this.pluginClient.status.stopLoading()
           })
       }
     } catch (e) {
-      this.pluginClient.status.update(e)
+      this.pluginClient.status.update(e, 'status-error')
       this.pluginClient.status.stopLoading()
     }
   }
