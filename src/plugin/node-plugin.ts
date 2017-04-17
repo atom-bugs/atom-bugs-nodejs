@@ -24,7 +24,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   }
 
   didLaunchError (message: string) {
-    atom.notifications.addError('Atom Bugs: Node.js', {
+    atom.notifications.addError('XAtom Debug: Node.js', {
       detail: `Launcher error: ${message}`,
       dismissable: true
     })
