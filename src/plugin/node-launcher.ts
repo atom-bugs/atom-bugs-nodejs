@@ -1,5 +1,5 @@
 import { ChromeDebuggingProtocolLauncher } from 'xatom-debug-chrome-base/lib/launcher'
-import { dirname, join, normalize } from 'path'
+import { dirname, join } from 'path'
 import { get, extend } from 'lodash'
 
 export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
@@ -8,26 +8,27 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   public environmentVariables: Object
   public cwd: string
   public scriptPath: string
-  normalizePath (dir) {
-    return normalize(dir.replace(/^~/, process.env.HOME))
-  }
   getLauncherArguments () {
-    let fileTarget = this.normalizePath(get(this, 'scriptPath', ''))
-    let launcherArgs = [
+    let debugArgs = [
       `--inspect`,
-      `--debug-brk=${this.portNumber}`,
-      `"${fileTarget}"`
-    ].concat(this.launchArguments)
-    console.log(launcherArgs)
+      `--debug-brk=${this.portNumber}`
+    ]
+    if (get(this, 'scriptPath.length') > 0) {
+      debugArgs.push(`"${this.scriptPath}"`)
+    }
+    let launcherArgs = debugArgs.concat(this.launchArguments)
     return launcherArgs
   }
   getProcessOptions () {
-    let projectPath = this.cwd || this.normalizePath(dirname(get(this, 'scriptPath', '')))
+    if (!this.cwd) {
+      this.cwd = dirname(get(this, 'scriptPath', ''))
+    }
     let envPath = get(process, 'env.PATH')
-    let npmPath = join(projectPath, 'node_modules', '.bin')
+    let npmPath = join(this.cwd, 'node_modules', '.bin')
     return {
       shell: true,
-      cwd: projectPath,
+      // windowsVerbatimArguments: true,
+      cwd: this.cwd,
       env: extend({
         SHELL: get(process, 'env.SHELL'),
         TERM: get(process, 'env.TERM'),
@@ -41,6 +42,6 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
     }
   }
   getBinaryPath (): string {
-    return this.binaryPath
+    return `"${this.binaryPath}"`
   }
 }

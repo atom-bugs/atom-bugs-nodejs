@@ -5,7 +5,8 @@ import { NodeDebugger } from './node-debugger'
 import { Runtype, NodeOptions } from './node-options'
 
 import { watch, FSWatcher } from 'chokidar'
-import { resolve } from 'path'
+import { resolve as resolvePath, normalize } from 'path'
+import { realpath } from 'fs'
 import { get, isUndefined, isString } from 'lodash'
 
 export class NodePlugin extends ChromeDebuggingProtocolPlugin {
@@ -21,6 +22,23 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   constructor () {
     super()
     this.addEventListeners()
+  }
+
+  normalizePath (dir: string, verify?: boolean) {
+    return new Promise<string>((resolve, reject) => {
+      let fixedPath = dir.replace(/^~/, process.env.HOME)
+      let normalizedPath = normalize(fixedPath)
+      if (verify) {
+        realpath(normalizedPath, (err, resolvedPath) => {
+          if (err) {
+            reject(err)
+          }
+          resolve(resolvedPath)
+        })
+      } else {
+        resolve(normalizedPath)
+      }
+    })
   }
 
   didLaunchError (message: string) {
@@ -41,14 +59,14 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
           if (options.runType === Runtype.CurrentFile) {
             let editor = atom.workspace.getActiveTextEditor()
             if (!isUndefined(editor)) {
-              this.launcher.scriptPath = editor.getPath()
+              this.launcher.scriptPath = await this.normalizePath(editor.getPath())
             }
           } else {
-            this.launcher.scriptPath = options.scriptPath
-            this.launcher.cwd = projectPath
+            this.launcher.scriptPath = await this.normalizePath(options.scriptPath)
+            this.launcher.cwd = await this.normalizePath(projectPath, true)
           }
           if (isString(this.launcher.scriptPath)) {
-            this.launcher.binaryPath = options.binaryPath
+            this.launcher.binaryPath = await this.normalizePath(options.binaryPath, true)
             this.launcher.portNumber = options.port
             this.launcher.launchArguments = options.launchArguments
             this.launcher.environmentVariables = options.environmentVariables
@@ -96,7 +114,7 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
       this.watcher.close()
     }
     if (options.restartOnChanges) {
-      this.watcher = watch(resolve(projectPath, options.changesPattern || ''), {
+      this.watcher = watch(resolvePath(projectPath, options.changesPattern || ''), {
         ignored: [
           /[\/\\]\./,
           /node_modules/,
