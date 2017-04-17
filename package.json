@@ -23,7 +23,7 @@
     }
   },
   "dependencies": {
-    "xatom-debug-chrome-base": "^0.1.23",
+    "xatom-debug-chrome-base": "^0.1.24",
     "atom-package-deps": "^4.6.0",
     "chokidar": "^1.6.1",
     "lodash": "^4.17.4"
