@@ -1,6 +1,6 @@
 import { ChromeDebuggingProtocolLauncher } from 'xatom-debug-chrome-base/lib/launcher'
 import { dirname, join } from 'path'
-import { get, extend } from 'lodash'
+import { get, extend, pad } from 'lodash'
 
 export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   public binaryPath: string
@@ -14,7 +14,7 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
       `--debug-brk=${this.portNumber}`
     ]
     if (get(this, 'scriptPath.length') > 0) {
-      debugArgs.push(`"${this.scriptPath}"`)
+      debugArgs.push(this.quote(this.scriptPath))
     }
     let launcherArgs = debugArgs.concat(this.launchArguments)
     return launcherArgs
@@ -42,6 +42,6 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
     }
   }
   getBinaryPath (): string {
-    return `"${this.binaryPath}"`
+    return this.quote(this.binaryPath)
   }
 }

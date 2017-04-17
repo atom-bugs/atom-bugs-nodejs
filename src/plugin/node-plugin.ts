@@ -6,7 +6,6 @@ import { Runtype, NodeOptions } from './node-options'
 
 import { watch, FSWatcher } from 'chokidar'
 import { resolve as resolvePath, normalize } from 'path'
-import { realpath } from 'fs'
 import { get, isUndefined, isString } from 'lodash'
 
 export class NodePlugin extends ChromeDebuggingProtocolPlugin {
@@ -22,23 +21,6 @@ export class NodePlugin extends ChromeDebuggingProtocolPlugin {
   constructor () {
     super()
     this.addEventListeners()
-  }
-
-  normalizePath (dir: string, verify?: boolean) {
-    return new Promise<string>((resolve, reject) => {
-      let fixedPath = dir.replace(/^~/, process.env.HOME)
-      let normalizedPath = normalize(fixedPath)
-      if (verify) {
-        realpath(normalizedPath, (err, resolvedPath) => {
-          if (err) {
-            reject(err)
-          }
-          resolve(resolvedPath)
-        })
-      } else {
-        resolve(normalizedPath)
-      }
-    })
   }
 
   didLaunchError (message: string) {
