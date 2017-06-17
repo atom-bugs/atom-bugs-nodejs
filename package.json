@@ -26,7 +26,7 @@
     "atom-package-deps": "^4.6.0",
     "chokidar": "^1.6.1",
     "lodash": "^4.17.4",
-    "xatom-debug-chrome-base": "^0.2.11"
+    "xatom-debug-chrome-base": "^0.2.12"
   },
   "package-deps": [
     "xatom-debug"
