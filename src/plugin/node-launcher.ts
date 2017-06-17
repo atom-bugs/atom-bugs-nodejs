@@ -10,8 +10,7 @@ export class NodeLauncher extends ChromeDebuggingProtocolLauncher {
   public scriptPath: string
   getLauncherArguments () {
     let debugArgs = [
-      `--inspect`,
-      `--debug-brk=${this.portNumber}`
+      `--inspect-brk=${this.portNumber}`
     ]
     if (get(this, 'scriptPath.length') > 0) {
       debugArgs.push(this.quote(this.scriptPath))
