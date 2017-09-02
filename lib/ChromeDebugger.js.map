@@ -1,0 +1,1 @@
+{"version":3,"file":"ChromeDebugger.js","sourceRoot":"","sources":["../src/ChromeDebugger.ts"],"names":[],"mappings":";;AAEA;IAAA;IAEA,CAAC;IAAD,8BAAC;AAAD,CAAC,AAFD,IAEC;AAFY,0DAAuB","sourcesContent":["import { request } from 'http';\n\nexport class ChromeDebuggingProtocol {\n  \n}\n"]}
