@@ -5,9 +5,8 @@
  * MIT Licensed
  */
 const { BufferedProcess, CompositeDisposable, Disposable } = require('atom');
-import { NodeDebugger } from './NodeDebugger';
+import { Debugger } from './Debugger';
 import { get } from 'lodash';
-// import { NodeLauncher } from './NodeLauncher';
 
 export class XAtomDebugNode {
   public name: string = 'Node.js';
@@ -18,7 +17,7 @@ export class XAtomDebugNode {
   private launcher: any;
   private process: any;
 
-  private debugger = new NodeDebugger();
+  private debugger = new Debugger();
   private subscriptions: any;
 
   activate () {
@@ -30,19 +29,20 @@ export class XAtomDebugNode {
       this.stop();
     }
   }
-  run () {
+  async run () {
     this.stop();
-    const options = this.session.getScheme();
+    const options = await this.session.getControlOptions();
+    const scheme = await this.session.getSchemeOptions();
     const host = '0.0.0.0';
     const port = 9000;
-    console.log('scheme options', options);
+    console.log('options', options, scheme);
     this.session.status({
       text: `Launching Node.js...`,
       loading: true
     });
     this.process = this.launcher.start('node', [
       `--inspect-brk=${host}:${port}`,
-      options.currentPath
+      scheme.currentPath
     ]);
     this
       .debugger
@@ -56,21 +56,61 @@ export class XAtomDebugNode {
         this.launcher.end();
       })
       .then(async (domains) => {
+        if (options.pauseOnException) {
+          await this.debugger.setPauseOnExceptions('all');
+        }
+        await this.debugger.setBreakpointsActive(!options.disableBreakpoints);
         this.session.status({
           text: 'Running on Node.js',
           loading: false,
           type: 'success'
         });
         // Set current breakpoints
-        const breakpoints = this.session.getBreakpoints();
-        // await breakpoints
-        //   .map((b) => this.addBreakpoint(b))
-        //   .reduce((r, i) => r.then(i), Promise.resolve());
+        const breakpoints = await this.session.getBreakpoints();
         // Start debugging session
         this.session.start();
         this.subscriptions = new CompositeDisposable(
-          this.debugger.onDidPause(() => {
-            this.session.pause();
+          this.debugger.onDidPause(async (params) => {
+            // if (params.reason === 'Break on start') {
+            //   this.continue();
+            // } else {
+              this.session.pause();
+              const callFrames = [];
+              // const location = <any> get(params, 'callFrames[0].location', null);
+              // build frames
+              get(params, 'callFrames', [])
+                .map((frame, index) => {
+                  const frameLocation: any = get(frame, 'location', {});
+                  return this
+                    .debugger
+                    .getScript((script) => {
+                      return script.scriptId === frameLocation.scriptId;
+                    })
+                    .then((script) => {
+                      const originalLocation = this.debugger.getScriptOriginalLocation(script,
+                        frameLocation.lineNumber,
+                        frameLocation.columnNumber);
+                      callFrames.push({
+                        filePath: originalLocation.filePath,
+                        functionName: frame.functionName,
+                        lineNumber: originalLocation.lineNumber,
+                        columnNumber: originalLocation.columnNumber
+                      });
+                      if (index === 0) {
+                        if (params.reason === 'exception') {
+                          this.session.markException(originalLocation);
+                        } else {
+                          this.session.markLocation(originalLocation);
+                        }
+                      }
+                    })
+                    .catch((e) => {
+                      console.log('1 unable to get script', frameLocation.scriptId);
+                    })
+                })
+                .reduce((r, v: any) => r.then(v), Promise.resolve())
+                .then(() => this.session.setFrames(callFrames));
+            // }
           }),
           this.debugger.onDidResume(() => {
             this.session.resume();
@@ -82,9 +122,6 @@ export class XAtomDebugNode {
             if (breakpoint) {
               this.addBreakpoint(breakpoint);
             }
-          }),
-          this.debugger.onDidPauseOnLocation((location) => {
-            this.session.location(location)
           }),
           this.debugger.onDidException((params) => {
             this.session.resume();

@@ -12,7 +12,7 @@ import { request } from 'http';
 import { get } from 'lodash';
 import { ConsoleMessage, Domains, ChromeDebuggingProtocol }  from 'chrome-debugging-protocol';
 
-export class NodeDebugger {
+export class Debugger {
   public protocol: ChromeDebuggingProtocol;
   public isRunning: boolean;
   private emitter = new Emitter();
@@ -38,16 +38,16 @@ export class NodeDebugger {
   onDidLoadFile (cb) {
     return this.emitter.on('didLoadFile', cb);
   }
-  getScriptOriginalLocation (script, location) {
+  getScriptOriginalLocation (script: any, lineNumber: number, columnNumber?: number) {
     const fileLocation = {
       filePath: script.url,
-      lineNumber: location.lineNumber,
-      columnNumber: location.columnNumber
+      lineNumber: lineNumber,
+      columnNumber: columnNumber || 0
     };
     if (script.sourcemapConsumer) {
       let sourceLocation = {
-        line: location.lineNumber + 1,
-        column: location.columnNumber || 0,
+        line: lineNumber + 1,
+        column: columnNumber || 0,
         bias: SourceMapConsumer.LEAST_UPPER_BOUND
       }
       let position = script.sourcemapConsumer.originalPositionFor(sourceLocation)
@@ -63,14 +63,10 @@ export class NodeDebugger {
     }
     return fileLocation;
   }
-  getGeneratedLocation (location) {
-    console.log('generated', location);
-  }
-  pauseOnScriptLocation (script, location) {
-    const pausedLocation = this.getScriptOriginalLocation(script, location);
-    this.emitter.emit('didPauseOnLocation', pausedLocation);
-  }
-  scriptDidLoad(cb) {
+  // getGeneratedLocation (location) {
+  //   console.log('generated', location);
+  // }
+  getScript (cb) {
     return new Promise((resolve, reject) => {
       let script = this.scripts.find(cb);
       if (script) {
@@ -86,7 +82,7 @@ export class NodeDebugger {
         handler = setTimeout(() => {
           disposable.dispose();
           reject('Unable to get script');
-        }, 10000);
+        }, 5000);
       }
     })
   }
@@ -95,22 +91,8 @@ export class NodeDebugger {
     Debugger.scriptParsed((params) => {
       this.addScript(params);
     });
-    Debugger.paused((params) => {
-      const frames = get(params, 'callFrames', []);
-      const location = <any> get(frames, '[0].location', {});
-      // frames.forEach((frame) => {
-      //   console.log('frame', frame.location.scriptId);
-      // });
-      if (location) {
-        this
-          .scriptDidLoad((script) => {
-            return location.scriptId === script.scriptId
-          })
-          .then((script) => {
-            this.pauseOnScriptLocation(script, location);
-          });
-      }
-      this.emitter.emit('didPause');
+    Debugger.paused(async (params) => {
+      this.emitter.emit('didPause', params);
     });
     Debugger.resumed((params) => {
       this.emitter.emit('didResume');
@@ -134,6 +116,14 @@ export class NodeDebugger {
       Debugger.setBlackboxPatterns({ patterns: [] }),
       Runtime.runIfWaitingForDebugger()
     ]);
+  }
+  setPauseOnExceptions (state: string) {
+    const { Debugger } = this.protocol.getDomains();
+    return Debugger.setPauseOnExceptions({ state });
+  }
+  setBreakpointsActive (active: boolean) {
+    const { Debugger } = this.protocol.getDomains();
+    return Debugger.setBreakpointsActive({ active });
   }
   async addSourceMap (params: any) {
     const scriptUrl = pathParse(params.url);
@@ -274,7 +264,9 @@ export class NodeDebugger {
       return Debugger.stepOut();
     });
   }
-  async attach (hostname: string, port: number): Promise<boolean> {
+  async attach (
+    hostname: string,
+    port: number): Promise<boolean> {
     const sockets = await this
       .getSockets(hostname, port, 5)
       .catch((error) => {
