@@ -17,7 +17,7 @@
 //         if (version) {
 //           let [completeVersion, major, minor, path] = version;
 //           if (parseInt(major) >= 8) {
-//             inspectArgs.push(`--inspect-brk=${this.portNumber}`);
+//             inspectArgs.push(`--inspect=${this.portNumber} --debug-brk`);
 //           } else if (parseInt(major) > 6 || (parseInt(major) === 6 && parseInt(minor) >= 3)) {
 //             inspectArgs.push(`--inspect`, `--debug-brk=${this.portNumber}`);
 //           } else {

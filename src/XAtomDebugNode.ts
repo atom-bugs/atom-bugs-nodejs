@@ -41,7 +41,7 @@ export class XAtomDebugNode {
       loading: true
     });
     this.process = this.launcher.start('node', [
-      `--inspect-brk=${host}:${port}`,
+      `--inspect=${host}:${port} --debug-brk`,
       scheme.currentPath
     ]);
     this
